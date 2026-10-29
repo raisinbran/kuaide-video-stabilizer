@@ -1,14 +1,14 @@
 # Status
 
-Last updated: 2026-10-29 06:28 PT by Codex.
+Last updated: 2026-10-29 06:36 PT by Codex.
 
 ## Current position
 
 - Phase 0 (repository setup) is complete. The GitHub repo is renamed to `kuaide-video-stabilizer`. No app code yet.
 - Phase 1 is approved. Planning reached a stable stop before the Windows shutdown deadline. No source implementation has started.
-- WP 1A plans are committed at `bc71848` on `feat/wp-1a-stabilization-benchmark`. A final fresh review of the revised split is pending.
+- WP 1A plans are committed through `e1d7d4d` on `feat/wp-1a-stabilization-benchmark`. Fresh review passed WP 1A.1 for implementation. WP 1A.2-1A.4 wait for predecessor commits and revalidation.
 - WP 1B's reviewed draft is committed at `3a822fc` on `feat/wp-1b-preview-playback`. Implementation is blocked on the generated-lockfile line-limit question below.
-- WP 1C plans are committed at `aacb0b8` on `feat/wp-1c-media-capabilities`. A final fresh review of the revised split is pending.
+- WP 1C plans are committed through `3be84fb` on `feat/wp-1c-media-capabilities`. Fresh review passed WP 1C-A for implementation. WP 1C-B and WP 1C-C wait for predecessor commits and revalidation.
 - No long benchmark render or other unpausable task has been approved yet.
 
 ## Machines
