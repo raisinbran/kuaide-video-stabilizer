@@ -1,11 +1,14 @@
 # Status
 
-Last updated: 2026-10-28 23:10 PT by Codex.
+Last updated: 2026-10-29 06:28 PT by Codex.
 
 ## Current position
 
 - Phase 0 (repository setup) is complete. The GitHub repo is renamed to `kuaide-video-stabilizer`. No app code yet.
-- Phase 1 is approved. Planning has started for WP 1A, WP 1B, and WP 1C on separate branches.
+- Phase 1 is approved. Planning reached a stable stop before the Windows shutdown deadline. No source implementation has started.
+- WP 1A plans are committed at `bc71848` on `feat/wp-1a-stabilization-benchmark`. A final fresh review of the revised split is pending.
+- WP 1B's reviewed draft is committed at `3a822fc` on `feat/wp-1b-preview-playback`. Implementation is blocked on the generated-lockfile line-limit question below.
+- WP 1C plans are committed at `aacb0b8` on `feat/wp-1c-media-capabilities`. A final fresh review of the revised split is pending.
 - No long benchmark render or other unpausable task has been approved yet.
 
 ## Machines
@@ -35,6 +38,7 @@ Last updated: 2026-10-28 23:10 PT by Codex.
 | 2026-10-28 | Agents install and run DaVinci Resolve (free) and do the benchmark scoring. Owner does only a short final look at the top candidates. |
 | 2026-10-28 | Agents do tasks by default; the owner gets a task only when it is much cheaper for a person (see AGENTS.md). |
 | 2026-10-28 | Owner approved the start of Phase 1. Long tasks still require a separate Gate 2 approval. |
+| 2026-10-29 | If account credits fall below 5%, stop at the nearest stable point, pause the plan, and ask whether the owner wants a handover. Work may resume after credits refresh. |
 
 ## Standing permissions
 
@@ -44,7 +48,7 @@ Last updated: 2026-10-28 23:10 PT by Codex.
 
 ## Open questions for the owner
 
-- None right now.
+- WP 1B generated lockfiles exceed the 700-line PR cap by themselves (`package-lock.json`: 1,811 lines; `Cargo.lock`: 4,621 lines). Recommended: exclude generated lockfiles from the line count while still committing and reviewing them.
 
 ## Waiting for owner hardware
 
@@ -52,4 +56,4 @@ Last updated: 2026-10-28 23:10 PT by Codex.
 
 ## Handover log
 
-- None yet.
+- `dev-plan/handover/2026-10-29-phase-1-planning.md`
