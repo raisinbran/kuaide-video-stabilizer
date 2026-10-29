@@ -2,7 +2,7 @@
 
 These rules apply to every agent (Claude Code, Codex or any other) and to every subagent. Read this file, [dev-plan/STATUS.md](dev-plan/STATUS.md) and the current phase of [dev-plan/implementation-roadmap.md](dev-plan/implementation-roadmap.md) before doing anything else.
 
-The owner is BJC. The owner is not a software specialist. Explain choices in plain words. Ask only about things that change scope, cost, time or what the app does, and give a recommended option. Decide backend details yourself, and record each decision in the current plan's notes as `proposed`.
+The owner is BJC. The owner is not a software specialist. Explain choices in plain words. Do tasks yourself by default. Give the owner a task only when it is much cheaper in time and credits for a person than for an agent, such as recording footage, a short visual check of video, a sign-in, or a form with personal details. Say why when you hand one over. Ask only about things that change scope, cost, time or what the app does, and give a recommended option. Decide backend details yourself, and record each decision in the current plan's notes as `proposed`.
 
 ## Standards
 
@@ -34,6 +34,8 @@ These override the matching personal-dev-env rules for this project only:
 **Gate 2: Long tasks.** Before starting any single task that cannot be paused safely and is expected to take more than 1 hour, stop and ask. Examples: a full benchmark render batch, building FFmpeg from source, a long release build. Tell the owner: the estimated time, whether the task can be split into smaller parts with stable stopping points, and what those parts are. The only exception is an active standing permission in STATUS.md ("Long-task permissions"). Follow its limits, such as an end time or a maximum duration.
 
 **Gate 3: Low credits.** Check usage at the start of each session and at each stable stopping point. In Claude Code, use `/usage` or the desktop app's usage tool. In Codex, use `/status`. If Claude Code or Codex credits are critically low (below 5% remaining), stop at the next stable stopping point and write a handover document. Do not start new work after that. If you cannot read your usage, assume it may run out at any time, and keep STATUS.md current at every stable stopping point.
+
+**Credit refresh bonus.** The owner's credits run on a 7-day cycle. When the usage display shows that the cycle refreshes to 100% within the next 1-2 hours, unused credits would be lost, so you may spend more on extra value. Examples: your own parallel analysis of something the owner is also checking (such as the benchmark's final look), an extra independent review, or extra test runs. Do not start new scope or anything that needs owner approval just because credits are available.
 
 **Gate 4: Scope and risk.** Stop and ask before: changing anything the design brief marks `owner-decided`; adding a feature that is not in the roadmap; choosing an option that adds a lot of work; any push, merge, release, deletion of owner data, or other hard-to-undo action.
 
@@ -76,7 +78,7 @@ Date: YYYY-MM-DD. From: <agent and model>. Reason: <low credits / UI-UX gate / e
 ## Working rules
 
 - Do all lasting work in this repo. Use only short-lived temporary files outside it, in your session's scratch folder. The owner moves between computers and cloud sessions.
-- Never commit video clips or FFmpeg binaries. Clips are listed in manifests with SHA-256 hashes. Binaries are downloaded by scripts in `app/third-party/` that check their checksums.
+- Never commit video clips or FFmpeg binaries. Clips are listed in manifests with SHA-256 hashes. Test clips live in the owner's Google Drive folder `My Drive/Agentic projects/kuaide-video-stabilizer_temp`. On the Windows PC that is `I:\My Drive\Agentic projects\kuaide-video-stabilizer_temp`. On the Mac, Google Drive for desktop usually mounts it under `~/Library/CloudStorage/GoogleDrive-<account>/My Drive/`. Record the exact Mac path in STATUS.md when first used. Scripts read the folder from the `KUAIDE_CLIPS_DIR` environment variable and never hard-code it. Keep only original clips there. Engine outputs go to a local folder outside the repo and can be deleted after scoring. Binaries are downloaded by scripts in `app/third-party/` that check their checksums.
 - Every WP in the roadmap is labelled `cloud-ok`, `needs-windows`, `needs-mac` or `needs-owner`. In a cloud session, do only `cloud-ok` work. Queue the rest in STATUS.md under "Waiting for owner hardware".
 - Branch names follow `<type>/<words>`, for example `feat/wp-2-3-job-queue`. Merge with squash merges only.
 - Subagents: give each one the WP goal, the folders it owns, the folders it must not touch, an `Applicable skills:` line with exact skill names, test commands, and the report it must return. Parallel subagents never edit the same files. The agent that wrote the code never reviews it.

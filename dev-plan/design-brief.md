@@ -100,10 +100,10 @@ Exposure, contrast, user crop and export settings never make either stage stale.
 ### Mandatory comparative benchmark (Phase 1)
 
 1. Clips, 30-60 s each, from the owner's own cameras: walking handheld, severe shake, deliberate pan, gyro footage (GoPro or DJI, plus Sony if available), low light, tripod or near-static, a clip with a hard cut, and strong parallax or foreground motion. Include at least one HDR phone clip.
-2. Engines: Gyroflow, FFmpeg libvidstab, and DaVinci Resolve as a reference that the owner runs by hand. Add OpenCV only if the first two are inadequate.
+2. Engines: Gyroflow, FFmpeg libvidstab, and DaVinci Resolve (free version) as a reference. The agent installs and runs Resolve (`owner-decided`), using a script run inside Resolve where possible. Add OpenCV only if the first two are inadequate.
 3. For each engine, run automatic or recommended settings with no tuning, then a best practical tuned version.
 4. Match resolution, frame rate and export quality. Keep the originals and outputs for side-by-side review.
-5. Scoring weights: shake removed 30%, warping/wobble/artifacts 25%, crop and field of view kept 15%, detail 10%, speed and resources 10%, integration and reliability 10%. The owner does blind visual scoring with a comparison page the agent builds. Automated measures (residual motion, crop percentage, run time) support the scores but do not replace them, and their limits are written down.
+5. Scoring weights: shake removed 30%, warping/wobble/artifacts 25%, crop and field of view kept 15%, detail 10%, speed and resources 10%, integration and reliability 10%. The agent does the scoring (`owner-decided`). It uses automated measures (residual shake, crop and field-of-view kept, sharpness, run time) and reviews extracted frame sequences and difference images for wobble and warping, then writes down the limits of each measure. The owner only watches a short side-by-side of the top two or three candidates (about 10-15 minutes) to confirm the ranking, because judging wobble by eye is much cheaper for a person than for an agent.
 6. Record how often automatic results needed a manual fix. Run on the owner's Windows PC and Apple Silicon Mac, including 4K/60 and 4K/120 samples.
 7. Write up the engine choice, licenses, packaging, performance and fallbacks in `dev-plan/decision-record.md`.
 
