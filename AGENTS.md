@@ -51,6 +51,8 @@ A stable stopping point means all of these are true:
 
 Aim for a stable stopping point at least every 1-2 hours of work, and at the end of every WP.
 
+**Machine availability.** STATUS.md lists when each of the owner's computers must be turned off. Reach a stable stopping point, with the handover written and pushed, at least 30 minutes before that time. Do not start a task on that machine that cannot finish 30 minutes before the shutdown time. Gate 2 still applies to anything over 1 hour.
+
 ## Handover template
 
 Write handovers to `dev-plan/handover/YYYY-MM-DD-<short-topic>.md`:
@@ -74,6 +76,17 @@ Date: YYYY-MM-DD. From: <agent and model>. Reason: <low credits / UI-UX gate / e
 
 ## Hardware or owner tasks waiting
 ```
+
+## Differences between agents
+
+The plan works with Claude Code and Codex. Where an agent lacks a capability, it uses the fallback below instead of skipping the step:
+
+- **Desktop control** (needed to click Stabilize in DaVinci Resolve): Claude Code in the desktop app can do this with computer use. If your agent cannot control the desktop, finish all scripted Resolve steps, then hand the clicking step to Claude Code with a handover. Only if no Claude Code session is available, ask the owner to do the clicks (about 1 minute per clip).
+- **Subagents:** if your agent cannot run parallel subagents, do the parallel WPs one after another in the same order. The results must be the same; only the speed changes.
+- **Cloud sessions** (Claude Code on the web, Codex cloud) run on Linux and cannot reach the owner's drives, Windows, macOS or Resolve. They do `cloud-ok` WPs only.
+- **personal-dev-env skills:** read them from GitHub. If your session has no internet access, say so and ask the owner before working without them.
+- **Usage checks** (Gate 3): Claude Code shows usage and reset times with `/usage`, and Codex with `/status`.
+- **UI/UX phase:** Gate 1 applies to every agent that is not Claude Code.
 
 ## Working rules
 

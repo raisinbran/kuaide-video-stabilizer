@@ -90,6 +90,18 @@ These three tracks are independent. Run them as **3 parallel subagents**, each o
 | 1B | **Preview playback.** A minimal Tauri 2 app that plays a 5-minute 1080p H.264 file and a proxy using both delivery methods (custom protocol, local server). It measures start time, steady fps, seek latency and memory, and runs the WebGL adjustment shader over the video. Also measures proxy generation speed and stabilized 720p proxy render speed. | needs-windows, needs-mac | 5-8 h. The first Tauri build takes about 10-20 min |
 | 1C | **Media capabilities and provenance.** Picks FFmpeg builds per OS (Windows: a GPL static build that includes libvidstab, x264, x265 and hardware encoders; macOS arm64: a static GPL build with libvidstab and VideoToolbox). Records versions, configure flags, sources and licenses. Tests hardware encoders on both machines. Probes the owner's camera samples (HDR flags, rotation, VFR, gyro detection). Picks a tone-mapping method by comparing frames. | mostly cloud-ok; encoder tests need-windows and need-mac | 4-6 h. If no suitable macOS build exists, building FFmpeg from source is **LONG** (est. 1-2 h) |
 
+**Benchmark clip coverage.** Clips in the folder on 2026-10-28, checked by reading their file headers (FFmpeg is not installed yet):
+
+| File | What it is | Use |
+|---|---|---|
+| `IMG_0225.MOV` | iPhone 7 original, HEVC 1080p, 6 s, SDR, no gyro track | Short phone test; too short for the 30-60 s benchmark length, but fine for import and HEVC tests |
+| `Caltrain - Brisbane to SSF.webm` | VP9, 60 s, written by an FFmpeg-based tool (likely a download) | Main "ordinary video" benchmark clip. Probably the earlier of the two files (older date, longer) |
+| `Caltrain - Brisbane to SSF.mp4` | H.264 1280x720, 42 s, re-encoded by FFmpeg | Not the camera original. The content overlaps the WebM, but it is 18 s shorter. Use it for the MP4 import test only |
+
+Neither Caltrain file is a camera original. Both were re-compressed, so they test "downloaded video", not best-case quality. 1A can start with these clips plus synthetic shaken clips, building and checking the harness. The engine choice at the Phase 1 gate also needs, in priority order: (1) an original GoPro, DJI or Insta360 clip with gyro data; (2) a recent phone clip recorded in HDR; (3) a 4K/60 clip, and 4K/120 if a camera can record it; (4) a handheld deliberate pan; (5) a tripod or resting-camera clip; (6) a running or severe-shake clip; (7) a low-light clip; (8) a Sony clip with gyro data, if available. The agent makes the hard-cut clip by joining two clips. The parallax case can come from any walking clip past nearby objects. STATUS.md holds this list as an owner task, with copying instructions.
+
+**Resolve procedure (1A).** A script placed in Resolve's Workspace > Scripts > Utility folder imports clips, builds one timeline per clip and queues the renders. The agent clicks Stabilize in the Inspector for each clip through desktop control, because the scripting API has no stabilize command. Expect about 5-10 minutes of agent time per clip.
+
 **Phase 1 output:** `dev-plan/decision-record.md`. It covers the preview path, the engine strategy, the FFmpeg/stabilizer integration method, timing and VFR rules, the tone-mapping method, the v1 import and export matrices, the reference hardware, benchmark results, unsupported cases, and licenses and provenance. Write it with `design-doc` (narrative, alternatives, chosen direction).
 
 **Stop point (owner gate):** BJC approves the decision record. If Tauri fails the preview test, the agent stops, presents the alternatives in plain terms, and asks.
