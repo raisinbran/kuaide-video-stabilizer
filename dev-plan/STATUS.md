@@ -9,9 +9,9 @@ Last updated: 2026-10-29 15:40 PT by Codex.
 - The original plans at `e1d7d4d`, `f63b6e6`, and `3be84fb` remain unavailable. Replacements are explicitly labeled; compare any recovered plans before combining work.
 - Recovery rules and documents: `docs/phase-1-recovery` at `9f2c01f`. WP 1C-R1 collector: `feat/wp-1c-build-inventory` at `dbe42b5`. WP 1A-R1 manifest: `feat/wp-1a-clip-manifest` at `957089c`, with status correction `2daa176`. Both packages passed independent review and their offline suites.
 - WP 1C-R2 is committed at `a4dff44` on `feat/wp-1c-windows-build`, based on `dbe42b5`. The acquisition, real listing evidence, source and tests passed independent review.
-- Current branch `feat/wp-1c-software-smoke` starts from `a4dff44`. WP 1C-R3 passed real synthetic encoding/filter checks and independent source/evidence review: nine zero-exit commands and three 320x180, 30-frame, one-second outputs. See `spikes/media-capabilities/evidence/2026-10-29-software-smoke.md`. No original footage or hardware encoder has been tested.
+- WP 1C-R3 is committed at `bbbb76f` on the current branch, `feat/wp-1c-software-smoke`, based on `a4dff44`. It passed real synthetic encoding/filter checks and independent source/evidence review: nine zero-exit commands and three 320x180, 30-frame, one-second outputs. See `spikes/media-capabilities/evidence/2026-10-29-software-smoke.md`. No original footage or hardware encoder has been tested.
 - Elevated Git execution resolves metadata write restrictions. Branches are local only. No push, PR or merge is authorized.
-- Account allowance at about 15:39 PT: 32% remains in the five-hour window and 61% in the weekly window. These are point-in-time readings; recheck at each stable point. Stop and provide a handover at 5% or below in any applicable window.
+- Account allowance at about 15:40 PT: 30% remains in the five-hour window and 61% in the weekly window. These are point-in-time readings; recheck at each stable point. Stop and provide a handover at 5% or below in any applicable window.
 
 ## Machines
 
@@ -63,6 +63,7 @@ Last updated: 2026-10-29 15:40 PT by Codex.
 
 - `dev-plan/handover/2026-10-29-phase-1-planning.md` (copied from the published coordination branch).
 - `dev-plan/handover/2026-10-29-recovery-and-allowance.md` (current local recovery record).
+- `dev-plan/handover/2026-10-29-phase-1-spikes.md` (latest continuation instructions and branch map).
 
 ## Verification and next work
 
