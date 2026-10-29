@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-10-29 15:44 PT by Codex.
+Last updated: 2026-10-29 15:59 PT by Codex.
 
 ## Current position
 
@@ -10,8 +10,8 @@ Last updated: 2026-10-29 15:44 PT by Codex.
 - Recovery rules and documents: `docs/phase-1-recovery` at `9f2c01f`. WP 1C-R1 collector: `feat/wp-1c-build-inventory` at `dbe42b5`. WP 1A-R1 manifest: `feat/wp-1a-clip-manifest` at `957089c`, with status correction `2daa176`. Both packages passed independent review and their offline suites.
 - WP 1C-R2 is committed at `a4dff44` on `feat/wp-1c-windows-build`, based on `dbe42b5`. The acquisition, real listing evidence, source and tests passed independent review.
 - WP 1C-R3 is committed at `bbbb76f` on the current branch, `feat/wp-1c-software-smoke`, based on `a4dff44`. It passed real synthetic encoding/filter checks and independent source/evidence review: nine zero-exit commands and three 320x180, 30-frame, one-second outputs. See `spikes/media-capabilities/evidence/2026-10-29-software-smoke.md`. No original footage or hardware encoder has been tested.
-- Elevated Git execution resolves metadata write restrictions. Branches are local only. No push, PR or merge is authorized.
-- Account allowance at about 15:43 PT: 28% remains in the five-hour window and 61% in the weekly window. These are point-in-time readings; recheck at each stable point. Begin wrap-up at 5% remaining or earlier; the handover must be ready and work already stopped at a stable point before either the five-hour or weekly allowance reaches 1%.
+- The owner approved publishing the five completed branches. All five were published and their GitHub ref hashes verified against local commits on 2026-10-29. Elevated Git execution resolves metadata write restrictions. No PR or merge is authorized.
+- Account allowance at about 15:59 PT: 11% remains in the five-hour window and 58% in the weekly window. These are point-in-time readings; recheck at each stable point. Begin wrap-up at 5% remaining or earlier; the handover must be ready and work already stopped at a stable point before either the five-hour or weekly allowance reaches 1%.
 
 ## Machines
 
@@ -48,7 +48,7 @@ Last updated: 2026-10-29 15:44 PT by Codex.
 
 - Mandatory allowance deadline for all plans and future sessions: by 1% remaining in either limit, the handover is ready and the agent has already stopped at a stable point. Begin wrap-up at 5% or earlier. See AGENTS.md Gate 3. The same rule is saved in local user-wide Codex and Claude Code instruction files on this computer.
 - Long-task permissions (Gate 2): none.
-- Push / PR permissions: none.
+- One-time owner approval: publish the five completed branches, including the completion status/handover record. All five are now published. No standing permission for further work, PRs or merges is implied.
 - Installing DaVinci Resolve (free): allowed. The download form asks for personal details, and accepting the license is the owner's call, so the owner fills in that form (about 2 minutes) unless they say otherwise at the time.
 
 ## Open questions for the owner
@@ -73,3 +73,8 @@ Last updated: 2026-10-29 15:44 PT by Codex.
 - WP 1C-R3: x264, x265 and both libvidstab passes executed successfully on synthetic data. All three outputs passed ffprobe checks; independent review reran the smoke and confirmed an existing-output retry preserves the report. Timings are illustrative, not representative benchmarks. No GPU encoding, original-media probing or quality scoring is established.
 - Binaries and retained download are ignored under `app/third-party/bin/`; raw path-containing inventory is in system temp. No binaries or raw local report are staged. The extracted GPL v3 license file is observed; full source correspondence and dependency license applicability remain unverified.
 - Next: recover or freshly plan WP 1B preview playback and verify its build prerequisites; continue source/dependency provenance review; run hardware/media tests when the original footage/reference machines are available. No Phase 1 engine or preview decision is made. Review integration bases before pushing or opening PRs: the WP 1C branches are stacked, while WP 1A is a separate sibling of the recovery branch.
+
+## GitHub connection and publication
+
+- Codex GitHub connector verified as `raisinbran`; repository read/write access works. GitHub Desktop also published using its existing sign-in. Command-line Git Credential Manager has no usable sign-in and cannot push noninteractively; do not confuse that with the healthy Codex connector.
+- Verified remote heads before this publication-record commit: recovery `9f2c01f`, clip manifest `2daa176`, build inventory `dbe42b5`, Windows build `a4dff44`, software smoke `9079706`. This final record is a following documentation commit on the software-smoke branch; verify its remote HEAD after publication.
