@@ -9,7 +9,7 @@ This roadmap splits the build into phases and pull-request-sized work packages (
 
 - **Where:** `cloud-ok` runs in any session, including a Linux cloud session. `needs-windows` and `needs-mac` need the owner's physical machine. `needs-owner` needs BJC's eyes, footage or a manual app (for example DaVinci Resolve).
 - **Est.:** rough agent working time. Any single step that cannot be paused and is expected to take over 1 hour is marked **LONG**. AGENTS.md says the agent must ask before starting it.
-- **Size rule:** a PR changes at most 700 lines (personal-dev-env `roadmap-run`). A WP that grows past that splits into two PRs.
+- **Size rule:** a PR changes at most 700 lines (personal-dev-env `roadmap-run`). Generated lockfiles do not count toward this limit, but they are committed and reviewed. A WP that grows past the limit splits into two PRs.
 
 ## Repository layout (target)
 

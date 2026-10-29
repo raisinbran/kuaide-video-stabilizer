@@ -1,13 +1,13 @@
 # Status
 
-Last updated: 2026-10-29 06:36 PT by Codex.
+Last updated: 2026-10-29 06:46 PT by Codex.
 
 ## Current position
 
 - Phase 0 (repository setup) is complete. The GitHub repo is renamed to `kuaide-video-stabilizer`. No app code yet.
 - Phase 1 is approved. Planning reached a stable stop before the Windows shutdown deadline. No source implementation has started.
 - WP 1A plans are committed through `e1d7d4d` on `feat/wp-1a-stabilization-benchmark`. Fresh review passed WP 1A.1 for implementation. WP 1A.2-1A.4 wait for predecessor commits and revalidation.
-- WP 1B's reviewed draft is committed at `3a822fc` on `feat/wp-1b-preview-playback`. Implementation is blocked on the generated-lockfile line-limit question below.
+- WP 1B plans are committed through `f63b6e6` on `feat/wp-1b-preview-playback`. Fresh review passed WP 1B.1 for implementation. WP 1B.2 and WP 1B.3 wait for predecessor commits and revalidation.
 - WP 1C plans are committed through `3be84fb` on `feat/wp-1c-media-capabilities`. Fresh review passed WP 1C-A for implementation. WP 1C-B and WP 1C-C wait for predecessor commits and revalidation.
 - No long benchmark render or other unpausable task has been approved yet.
 
@@ -39,6 +39,7 @@ Last updated: 2026-10-29 06:36 PT by Codex.
 | 2026-10-28 | Agents do tasks by default; the owner gets a task only when it is much cheaper for a person (see AGENTS.md). |
 | 2026-10-28 | Owner approved the start of Phase 1. Long tasks still require a separate Gate 2 approval. |
 | 2026-10-29 | If account credits fall below 5%, stop at the nearest stable point, pause the plan, and ask whether the owner wants a handover. Work may resume after credits refresh. |
+| 2026-10-29 | Generated lockfiles do not count toward the 700-line PR size limit, but they must be committed and reviewed. |
 
 ## Standing permissions
 
@@ -48,7 +49,7 @@ Last updated: 2026-10-29 06:36 PT by Codex.
 
 ## Open questions for the owner
 
-- WP 1B generated lockfiles exceed the 700-line PR cap by themselves (`package-lock.json`: 1,811 lines; `Cargo.lock`: 4,621 lines). Recommended: exclude generated lockfiles from the line count while still committing and reviewing them.
+- None right now.
 
 ## Waiting for owner hardware
 

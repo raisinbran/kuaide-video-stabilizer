@@ -26,6 +26,7 @@ These override the matching personal-dev-env rules for this project only:
 3. Pushing, opening a PR and merging still need the owner's approval in chat each time, unless STATUS.md records a standing approval that has not expired.
 4. Commits and PRs carry no AI attribution lines (personal-dev-env rule).
 5. Never use emojis, or the words "canonical" or "contract", in docs, comments, commits or PRs.
+6. Generated lockfiles do not count toward the 700-line PR size limit. They must still be committed and reviewed with the manifest changes that generated them.
 
 ## Stop-and-ask gates
 
