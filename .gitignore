@@ -18,6 +18,7 @@ dist/
 app/third-party/bin/
 
 # Local caches and OS files
+.worktrees/
 .DS_Store
 Thumbs.db
 *.log

@@ -1,11 +1,12 @@
 # Status
 
-Last updated: 2026-10-28 23:10 PT by Claude Code (Opus 5.5).
+Last updated: 2026-10-28 23:10 PT by Codex.
 
 ## Current position
 
 - Phase 0 (repository setup) is complete. The GitHub repo is renamed to `kuaide-video-stabilizer`. No app code yet.
-- Next step: the owner approves the start of Phase 1. The owner has said not to execute the plan yet.
+- Phase 1 is approved. Planning has started for WP 1A, WP 1B, and WP 1C on separate branches.
+- No long benchmark render or other unpausable task has been approved yet.
 
 ## Machines
 
@@ -33,6 +34,7 @@ Last updated: 2026-10-28 23:10 PT by Claude Code (Opus 5.5).
 | 2026-10-28 | Within 1-2 hours of the 7-day credit refresh, agents may spend extra credits on parallel analysis (see AGENTS.md Gate 3). |
 | 2026-10-28 | Agents install and run DaVinci Resolve (free) and do the benchmark scoring. Owner does only a short final look at the top candidates. |
 | 2026-10-28 | Agents do tasks by default; the owner gets a task only when it is much cheaper for a person (see AGENTS.md). |
+| 2026-10-28 | Owner approved the start of Phase 1. Long tasks still require a separate Gate 2 approval. |
 
 ## Standing permissions
 
