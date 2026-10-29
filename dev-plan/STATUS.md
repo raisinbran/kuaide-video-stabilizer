@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-10-29 15:40 PT by Codex.
+Last updated: 2026-10-29 15:44 PT by Codex.
 
 ## Current position
 
@@ -11,7 +11,7 @@ Last updated: 2026-10-29 15:40 PT by Codex.
 - WP 1C-R2 is committed at `a4dff44` on `feat/wp-1c-windows-build`, based on `dbe42b5`. The acquisition, real listing evidence, source and tests passed independent review.
 - WP 1C-R3 is committed at `bbbb76f` on the current branch, `feat/wp-1c-software-smoke`, based on `a4dff44`. It passed real synthetic encoding/filter checks and independent source/evidence review: nine zero-exit commands and three 320x180, 30-frame, one-second outputs. See `spikes/media-capabilities/evidence/2026-10-29-software-smoke.md`. No original footage or hardware encoder has been tested.
 - Elevated Git execution resolves metadata write restrictions. Branches are local only. No push, PR or merge is authorized.
-- Account allowance at about 15:40 PT: 30% remains in the five-hour window and 61% in the weekly window. These are point-in-time readings; recheck at each stable point. Stop and provide a handover at 5% or below in any applicable window.
+- Account allowance at about 15:43 PT: 28% remains in the five-hour window and 61% in the weekly window. These are point-in-time readings; recheck at each stable point. Begin wrap-up at 5% remaining or earlier; the handover must be ready and work already stopped at a stable point before either the five-hour or weekly allowance reaches 1%.
 
 ## Machines
 
@@ -42,11 +42,11 @@ Last updated: 2026-10-29 15:40 PT by Codex.
 | 2026-10-28 | Agents do tasks by default; the owner gets a task only when it is much cheaper for a person (see AGENTS.md). |
 | 2026-10-28 | Owner approved the start of Phase 1. Long tasks still require a separate Gate 2 approval. |
 | 2026-10-29 | Generated lockfiles do not count toward the 700-line PR size limit, but they must be committed and reviewed. |
-| 2026-10-29 | At 5% or below remaining Codex or Claude Code allowance, stop at a stable point and provide a handover. This applies immediately and to all future tasks in this plan. |
+| 2026-10-29 | All plans and future sessions: by 1% remaining in either the five-hour or weekly allowance, a handover must already be ready and work already stopped at a stable point. Keep 5% as the early wrap-up trigger, or start earlier when needed. |
 
 ## Standing permissions
 
-- Mandatory allowance rule, effective immediately for all future plan tasks: at 5% or below remaining Codex or Claude Code allowance, stop at the next stable point and provide the owner a handover document. See AGENTS.md Gate 3.
+- Mandatory allowance deadline for all plans and future sessions: by 1% remaining in either limit, the handover is ready and the agent has already stopped at a stable point. Begin wrap-up at 5% or earlier. See AGENTS.md Gate 3. The same rule is saved in local user-wide Codex and Claude Code instruction files on this computer.
 - Long-task permissions (Gate 2): none.
 - Push / PR permissions: none.
 - Installing DaVinci Resolve (free): allowed. The download form asks for personal details, and accepting the license is the owner's call, so the owner fills in that form (about 2 minutes) unless they say otherwise at the time.

@@ -17,7 +17,7 @@ Date: 2026-10-29, 15:40 PT. From: Codex. Reason: Stable end of bounded work befo
 ## Done since the last handover
 
 - Found bundled Git/Python/PowerShell. Git metadata writes require approved elevated execution; read-only Git works normally by absolute path.
-- Preserved the immediate 5%-or-below stop-and-handover rule in AGENTS.md and STATUS.md. Codex can read allowance through `get_usage_limits`; the earlier unavailable claim was corrected. At 15:40 PT, 30% five-hour and 61% weekly allowance remained. Recheck before work.
+- Updated the immediate allowance rule in AGENTS.md and STATUS.md: at 5% or earlier begin wrap-up; by 1% remaining in either the five-hour or weekly limit, the handover must already be ready and work stopped at a stable point. This applies to all plans and future sessions and is also saved in local user-wide Codex and Claude Code instructions. Codex can read allowance through `get_usage_limits`; the earlier unavailable claim was corrected. At 15:40 PT, 30% five-hour and 61% weekly allowance remained. Recheck before work.
 - Confirmed the original plan commits `e1d7d4d`, `f63b6e6`, `3be84fb` are unavailable locally and on GitHub. Prepared explicitly labeled replacement plans within approved Phase 1 scope, with independent review before implementation.
 - WP 1A-R1: full-file SHA-256, size and filename manifest from `KUAIDE_CLIPS_DIR`; no media guesses or absolute source paths. Byte-fixture tests passed independently. No original footage was accessed.
 - WP 1C-R1: offline build identity/listing collector with exact executable hashes, raw command output, timeout handling and explicitly unverified provenance. Four behavior groups passed independently.
@@ -27,7 +27,7 @@ Date: 2026-10-29, 15:40 PT. From: Codex. Reason: Stable end of bounded work befo
 
 ## Next steps (in order)
 
-1. Read AGENTS.md, STATUS.md and Phase 1 roadmap; check allowance and the current machine window. At 5% or below in any applicable allowance window, stop at a stable point and provide a handover.
+1. Read AGENTS.md, STATUS.md and Phase 1 roadmap; check allowance and the current machine window. Begin wrap-up at 5% remaining in either allowance window, or earlier when needed. Before either limit reaches 1%, the handover must already be ready and work already stopped at a stable point. If usage cannot be read, start no further plan work and prepare the handover and stable stop.
 2. Obtain owner approval before pushing the five branches above. Do not push or merge based only on this handover. Review branch bases before opening PRs; the WP 1A branch is a sibling, while WP 1C packages form a stack. STATUS.md will need reconciliation during any later approved integration.
 3. Recover the old plans if available and compare before reusing them; replacements do not claim to reproduce their contents.
 4. Recover or prepare a fresh bounded WP 1B preview-playback plan and check Rust, Node, build tools and Tauri prerequisites. Current session PATH does not expose those development tools. Do not assume the original PC inventory describes this host.

@@ -1,6 +1,8 @@
 # Kuaide Video Stabilizer: Implementation Roadmap
 
 **Status:** Phase 1 approved, as recorded in the Phase 1 planning handoff. Later phase gates still apply.
+**Allowance deadline:** For all plans and sessions, have the handover ready and work stopped at a stable point before either the five-hour or weekly allowance reaches 1%. Begin wrap-up at 5% or earlier. See AGENTS.md Gate 3.
+
 **Requirements:** [design-brief.md](design-brief.md). **Agent rules:** [../AGENTS.md](../AGENTS.md). **Live progress:** [STATUS.md](STATUS.md).
 
 This roadmap splits the build into phases and pull-request-sized work packages (WPs). It names the frontend and backend parts, which WPs can run in parallel with subagents, and where agents must stop. Each WP gets its own implementation plan in `dev-plan/plans/` just before it starts. personal-dev-env's `create-plan` skill writes that plan against the code as it exists then. This roadmap holds no code diffs, because there is no code yet.
