@@ -1,0 +1,23 @@
+# Build output
+target/
+node_modules/
+dist/
+
+# Media and third-party binaries are never committed
+*.mp4
+*.mov
+*.mkv
+*.m4v
+*.avi
+*.webm
+*.mts
+*.m2ts
+*.braw
+*.insv
+*.partial
+app/third-party/bin/
+
+# Local caches and OS files
+.DS_Store
+Thumbs.db
+*.log
