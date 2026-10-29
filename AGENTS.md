@@ -88,6 +88,7 @@ The plan works with Claude Code and Codex. Where an agent lacks a capability, it
 - **personal-dev-env skills:** read them from GitHub. If your session has no internet access, say so and ask the owner before working without them.
 - **Usage checks** (Gate 3): Claude Code shows usage and reset times with `/usage`, and Codex with `/status`.
 - **UI/UX phase:** Gate 1 applies to every agent that is not Claude Code.
+- **Code quality (owner observation, 2026-10-29):** ChatGPT/Codex tends to make more development and coding mistakes than Claude/Claude Code. Treat Codex-written code, tests and evidence with extra care: have Claude Code review them (or rerun their checks) before a PR is opened or merged, and prefer Claude Code for new code when both are available.
 
 ## Working rules
 
