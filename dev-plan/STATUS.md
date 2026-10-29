@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-10-29 15:32 PT by Codex.
+Last updated: 2026-10-29 15:40 PT by Codex.
 
 ## Current position
 
@@ -8,15 +8,17 @@ Last updated: 2026-10-29 15:32 PT by Codex.
 - Phase 1 is approved. Bounded replacement spikes are implemented; no app UI or core implementation has started.
 - The original plans at `e1d7d4d`, `f63b6e6`, and `3be84fb` remain unavailable. Replacements are explicitly labeled; compare any recovered plans before combining work.
 - Recovery rules and documents: `docs/phase-1-recovery` at `9f2c01f`. WP 1C-R1 collector: `feat/wp-1c-build-inventory` at `dbe42b5`. WP 1A-R1 manifest: `feat/wp-1a-clip-manifest` at `957089c`, with status correction `2daa176`. Both packages passed independent review and their offline suites.
-- Current branch `feat/wp-1c-windows-build` starts from `dbe42b5`. Its reviewed WP 1C-R2 script acquired and checksum-verified one Windows candidate. All six real collector commands passed, and observed build evidence is recorded in `spikes/media-capabilities/evidence/2026-10-29-windows-candidate.md`. The source/test review and factual evidence review both approved it.
+- WP 1C-R2 is committed at `a4dff44` on `feat/wp-1c-windows-build`, based on `dbe42b5`. The acquisition, real listing evidence, source and tests passed independent review.
+- Current branch `feat/wp-1c-software-smoke` starts from `a4dff44`. WP 1C-R3 passed real synthetic encoding/filter checks and independent source/evidence review: nine zero-exit commands and three 320x180, 30-frame, one-second outputs. See `spikes/media-capabilities/evidence/2026-10-29-software-smoke.md`. No original footage or hardware encoder has been tested.
 - Elevated Git execution resolves metadata write restrictions. Branches are local only. No push, PR or merge is authorized.
-- Account allowance at about 15:31 PT: 49% remains in the five-hour window and 64% in the weekly window. These are point-in-time readings; recheck at each stable point. Stop and provide a handover at 5% or below in any applicable window.
+- Account allowance at about 15:39 PT: 32% remains in the five-hour window and 61% in the weekly window. These are point-in-time readings; recheck at each stable point. Stop and provide a handover at 5% or below in any applicable window.
 
 ## Machines
 
 | Machine | Details | Availability |
 |---|---|---|
-| Original Windows PC | Historic inventory: Intel Core i7-14700K, RTX 3080 + UHD 770, 32 GB RAM; Rust, Node.js, Python, Git and Resolve. Clips: `I:\My Drive\Agentic projects\kuaide-video-stabilizer_temp`. This session uses `C:\Users\bchen`; the original `C:\Users\brand` path and clips drive are absent. Original hardware is not verified here. | Owner's temporary window: available until about 17:00 PT on 2026-10-29; asleep about 17:00-17:20 PT. Stable-stop target: 16:30 PT. Availability after 17:20 awaits owner details. No push permission is implied. |
+| Current Windows host | Verified by CIM: Dell Precision 7760, Xeon W-11855M, Intel UHD + RTX A3000 Laptop GPU, 67,865,284,608 bytes RAM, SSSTC 1 TB NVMe. Session path `C:\Users\bchen`; original clips drive is absent. Bundled Git, Python and PowerShell work by absolute paths. Pinned FFmpeg candidate is local and ignored. | Owner's temporary window: available until about 17:00 PT on 2026-10-29; asleep about 17:00-17:20 PT. Stable-stop target: 16:30 PT. Availability after 17:20 awaits owner details. No push permission is implied. |
+| Original Windows reference PC | Historic inventory: i7-14700K, RTX 3080 + UHD 770, 32 GB RAM; Rust, Node.js, Python, Git and Resolve. Clips expected at `I:\My Drive\Agentic projects\kuaide-video-stabilizer_temp`. This machine and its clips are not accessible here. | Unknown; current host results do not satisfy its evidence requirement. |
 | Apple Silicon Mac | Not checked yet | Unknown |
 
 ## Owner tasks
@@ -66,6 +68,7 @@ Last updated: 2026-10-29 15:32 PT by Codex.
 
 - WP 1C-R1: all four offline behavior groups passed in the checkout and in independent review. The collector subsequently passed all six listing/identity commands against real verified FFmpeg and ffprobe binaries.
 - WP 1A-R1: all three fixture behavior groups passed in the checkout and independently. A scratch mutation adding an absolute source path was rejected. No original clips were accessed. This source is on its separate named branch, not merged here.
-- WP 1C-R2: checksum-rejection check passed independently; actual download, pinned hash/size check and extraction succeeded. Exact binary/license hashes, versions and full reported configuration are recorded in evidence. Required stabilization filters, x264/x265 and NVENC/QSV/AMF encoder names are listed. No encode, filter execution or GPU validation has run yet.
+- WP 1C-R2: checksum-rejection check passed independently; actual download, pinned hash/size check and extraction succeeded. Exact binary/license hashes, versions and full reported configuration are recorded in evidence. Required stabilization filters, x264/x265 and NVENC/QSV/AMF encoder names are listed.
+- WP 1C-R3: x264, x265 and both libvidstab passes executed successfully on synthetic data. All three outputs passed ffprobe checks; independent review reran the smoke and confirmed an existing-output retry preserves the report. Timings are illustrative, not representative benchmarks. No GPU encoding, original-media probing or quality scoring is established.
 - Binaries and retained download are ignored under `app/third-party/bin/`; raw path-containing inventory is in system temp. No binaries or raw local report are staged. The extracted GPL v3 license file is observed; full source correspondence and dependency license applicability remain unverified.
-- Next: bounded runtime encoder/filter checks with synthetic inputs, plus source/dependency provenance review. WP 1B preview work, actual footage probing, Windows reference-machine tests and macOS evidence remain open. No Phase 1 engine or preview decision is made.
+- Next: recover or freshly plan WP 1B preview playback and verify its build prerequisites; continue source/dependency provenance review; run hardware/media tests when the original footage/reference machines are available. No Phase 1 engine or preview decision is made. Review integration bases before pushing or opening PRs: the WP 1C branches are stacked, while WP 1A is a separate sibling of the recovery branch.
