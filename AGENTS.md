@@ -26,6 +26,7 @@ These override the matching personal-dev-env rules for this project only:
 3. Pushing, opening a PR and merging still need the owner's approval in chat each time, unless STATUS.md records a standing approval that has not expired.
 4. Commits and PRs carry no AI attribution lines (personal-dev-env rule).
 5. Never use emojis, or the words "canonical" or "contract", in docs, comments, commits or PRs.
+6. Generated lockfiles do not count toward the 700-line PR size limit. They must still be committed and reviewed with the manifest changes that generated them.
 
 ## Stop-and-ask gates
 
@@ -33,7 +34,7 @@ These override the matching personal-dev-env rules for this project only:
 
 **Gate 2: Long tasks.** Before starting any single task that cannot be paused safely and is expected to take more than 1 hour, stop and ask. Examples: a full benchmark render batch, building FFmpeg from source, a long release build. Tell the owner: the estimated time, whether the task can be split into smaller parts with stable stopping points, and what those parts are. The only exception is an active standing permission in STATUS.md ("Long-task permissions"). Follow its limits, such as an end time or a maximum duration.
 
-**Gate 3: Low credits.** Check usage at the start of each session and at each stable stopping point. In Claude Code, use `/usage` or the desktop app's usage tool. In Codex, use `/status`. If Claude Code or Codex credits are critically low (below 5% remaining), stop at the next stable stopping point and write a handover document. Do not start new work after that. If you cannot read your usage, assume it may run out at any time, and keep STATUS.md current at every stable stopping point.
+**Gate 3: Low credits.** This rule applies immediately and to all future tasks in this plan. Check usage at the start of each session and at each stable stopping point. In Claude Code, use `/usage` or the desktop app's usage tool. In Codex, first use the desktop app tool `get_usage_limits` when available; use `/status` as a fallback. Read each applicable window as 100 minus `usedPercent`, preferring `rateLimitsByLimitId`. Stop if any applicable window has 5% or below remaining. Missing values mean unavailable, not zero. If either agent's remaining account allowance is 5% or below, stop at the next stable stopping point and provide the owner a handover document using the template below. Do not start new work after that. Resume only after the allowance refreshes or the owner confirms sufficient allowance is available. If you cannot read your usage, report that limitation and keep STATUS.md current at every stable stopping point; do not claim a measured percentage.
 
 **Credit refresh bonus.** The owner's credits run on a 7-day cycle. When the usage display shows that the cycle refreshes to 100% within the next 1-2 hours, unused credits would be lost, so you may spend more on extra value. Examples: your own parallel analysis of something the owner is also checking (such as the benchmark's final look), an extra independent review, or extra test runs. Do not start new scope or anything that needs owner approval just because credits are available.
 
