@@ -1,6 +1,6 @@
 #requires -Version 7.0
 [CmdletBinding()]
-param([string]$ArchivePath)
+param([string]$ArchivePath, [ValidateRange(1, 240)][int]$TimeoutMinutes = 30)
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 if (-not $IsWindows -or [Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString() -ne 'X64') {
@@ -40,7 +40,7 @@ if ($ArchivePath) {
     $archiveFile = Join-Path $bin ('download-' + [Guid]::NewGuid().ToString('N') + '.zip.partial')
     $output = [IO.File]::Open($archiveFile, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None)
     $client = [Net.Http.HttpClient]::new()
-    $cancel = [Threading.CancellationTokenSource]::new([TimeSpan]::FromMinutes(5))
+    $cancel = [Threading.CancellationTokenSource]::new([TimeSpan]::FromMinutes($TimeoutMinutes))
     $response = $null
     $download = $null
     try {

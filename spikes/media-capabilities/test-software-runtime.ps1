@@ -52,7 +52,7 @@ function Invoke-SmokeCommand([string]$Name, [string]$Path, [string[]]$Arguments)
 
 $ffmpeg = Resolve-PlainPath $FfmpegPath $false
 $ffprobe = Resolve-PlainPath $FfprobePath $false
-$output = [IO.Path]::GetFullPath($OutputDirectory)
+$output = $PSCmdlet.GetUnresolvedProviderPathFromPSPath($OutputDirectory)
 if (Test-Path -LiteralPath $output) { throw 'OutputDirectory must not exist; choose a new external directory.' }
 $null = Resolve-PlainPath ([IO.Path]::GetDirectoryName($output)) $true
 $repo = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))

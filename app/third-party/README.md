@@ -23,7 +23,7 @@ For an already downloaded local archive, add `-ArchivePath 'C:/downloads/candida
 
 All downloaded and extracted files stay under ignored `app/third-party/bin/`. Success places the archive's root inside `bin/ffmpeg-win64-gpl-9.0-cd9b8df51452/` and prints paths to both executables. A downloaded archive is named `download-<id>.zip.partial` until it passes the hash check and extraction, then renamed to `download-<id>.zip`; a `.partial` file is always unverified or incomplete. An existing candidate directory makes the script fail. It creates uniquely named download/staging paths and never deletes or replaces previous files. A failed run may leave ignored partial downloads or extraction directories; inspect them before any later owner-approved cleanup. Do not change directory links concurrently. Linked paths are rejected.
 
-The HTTP transfer has a five-minute cancellation deadline. This approximately 195 MB archive should be a bounded acquisition task; extraction and inventory are separate stopping points. No source build or long render batch is part of this script.
+The HTTP transfer stops after 30 minutes by default, which needs about 110 KB/s; pass `-TimeoutMinutes` (1-240) for a slower link. This approximately 195 MB archive should be a bounded acquisition task; extraction and inventory are separate stopping points. No source build or long render batch is part of this script.
 
 Run the offline rejection check:
 
