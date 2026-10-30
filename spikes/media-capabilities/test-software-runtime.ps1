@@ -87,6 +87,21 @@ try {
         if ($stream.codec_name -ne $codec -or $stream.width -ne 320 -or $stream.height -ne 180 -or [int]$stream.nb_read_frames -ne 30 -or [Math]::Abs($duration - 1.0) -gt 0.05) { throw "Output does not match expected codec, size, frame count or duration: $name" }
         $checks.Add([ordered]@{ file_name = $name; codec = $stream.codec_name; width = $stream.width; height = $stream.height; decoded_frame_count = [int]$stream.nb_read_frames; duration_seconds = $duration; sha256 = (Get-FileHash -LiteralPath (Join-Path $output $name)).Hash.ToLowerInvariant() })
     }
+    # A still frame panned by a known sine path has only camera shake, so the
+    # frame-to-frame difference in the center measures leftover motion.
+    $null = Invoke-SmokeCommand 'still-frame' $ffmpeg ($common + @('-f', 'lavfi', '-i', 'testsrc2=size=400x260', '-frames:v', '1', 'still.png'))
+    $null = Invoke-SmokeCommand 'encode-shaky' $ffmpeg ($common + @('-loop', '1', '-framerate', '30', '-t', '2', '-i', 'still.png', '-vf', "crop=320:180:'40+30*sin(2*PI*3*t)':'40+20*sin(2*PI*2*t+1)'", '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '18', '-pix_fmt', 'yuv420p', '-threads', '2', 'shaky.mp4'))
+    $null = Invoke-SmokeCommand 'detect-shake' $ffmpeg ($common + @('-i', 'shaky.mp4', '-vf', 'vidstabdetect=shakiness=10:accuracy=15:result=shaky.trf', '-f', 'null', '-'))
+    $null = Invoke-SmokeCommand 'transform-shake' $ffmpeg ($common + @('-i', 'shaky.mp4', '-vf', 'vidstabtransform=input=shaky.trf:smoothing=30:optzoom=0:crop=black', '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '18', '-pix_fmt', 'yuv420p', '-threads', '2', 'steadied.mp4'))
+    $motion = [ordered]@{}
+    foreach ($name in @('shaky.mp4', 'steadied.mp4')) {
+        $measure = Invoke-SmokeCommand "measure-$name" $ffmpeg @('-nostdin', '-hide_banner', '-v', 'error', '-i', $name, '-vf', 'crop=160:90:80:45,tblend=all_mode=difference,signalstats,metadata=print:key=lavfi.signalstats.YAVG:file=-', '-f', 'null', '-')
+        $values = @([regex]::Matches($measure.stdout, 'YAVG=([0-9.]+)') | ForEach-Object { [double]::Parse($_.Groups[1].Value, [Globalization.CultureInfo]::InvariantCulture) })
+        if ($values.Count -ne 59) { throw "Expected 59 frame differences, got $($values.Count): $name" }
+        $motion[$name] = ($values | Measure-Object -Average).Average
+    }
+    $report.shake_check = [ordered]@{ shaky_mean_difference = $motion['shaky.mp4']; steadied_mean_difference = $motion['steadied.mp4']; ratio = $motion['steadied.mp4'] / [Math]::Max($motion['shaky.mp4'], 1e-9); required_ratio_at_most = 0.25 }
+    if ($motion['shaky.mp4'] -lt 5 -or $motion['steadied.mp4'] -gt 0.25 * $motion['shaky.mp4']) { throw "Stabilization did not reduce synthetic shake enough: $($motion['shaky.mp4']) -> $($motion['steadied.mp4'])" }
     foreach ($tool in $tools.Values) {
         if ($tool.sha256 -ne (Get-FileHash -LiteralPath $tool.path).Hash.ToLowerInvariant()) { throw 'A tool changed during the smoke run.' }
     }

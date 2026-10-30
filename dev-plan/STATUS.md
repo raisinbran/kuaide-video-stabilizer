@@ -1,23 +1,33 @@
 # Status
 
-Last updated: 2026-10-29 15:59 PT by Codex.
+Last updated: 2026-10-29 by Claude Code (QA-R1 fixes).
 
 ## Current position
 
+In plain words: Phase 1 has started, but most of it is still ahead. So far the agents have a checked copy of FFmpeg for Windows, a script that lists clip files with their fingerprints, and a short test showing that FFmpeg can encode video and that its stabilizer reduces shake on a computer-made test video. No real footage has been tested, no stabilizer has been compared, and the preview test has not started.
+
+| Phase 1 part | Done | Still to do |
+|---|---|---|
+| 1A Stabilization benchmark | A script that lists clip files with their fingerprints | Run the stabilizers (FFmpeg's, Gyroflow, DaVinci Resolve) on your clips, score them, and build the side-by-side comparison page |
+| 1B Preview playback | Nothing | Build a small test version of the app window (Tauri) and measure how smoothly it plays and seeks video |
+| 1C Media tools | One exact Windows FFmpeg build, downloaded and checked; tests that it can encode video and reduce shake on a computer-made video | A Mac FFmpeg build; video encoding on the graphics card; reading the settings of your camera files; choosing how to convert HDR (bright, wide-color) video to normal video; finishing the license check, which is partly done |
+| Decision record | Nothing | Write `dev-plan/decision-record.md` for your approval |
+
 - Phase 0 (repository setup) is complete. The GitHub repo is renamed to `kuaide-video-stabilizer`. No app code yet.
 - Phase 1 is approved. Bounded replacement spikes are implemented; no app UI or core implementation has started.
-- The original plans at `e1d7d4d`, `f63b6e6`, and `3be84fb` remain unavailable. Replacements are explicitly labeled; compare any recovered plans before combining work.
+- The original plans at `e1d7d4d`, `f63b6e6`, and `3be84fb` remain unavailable. `docs/phase-1-start` shows they were committed on `feat/wp-1a-stabilization-benchmark`, `feat/wp-1b-preview-playback` and `feat/wp-1c-media-capabilities`, which were never pushed; they are most likely only on the original Windows PC. Replacements are explicitly labeled; compare any recovered plans before combining work.
 - Recovery rules and documents: `docs/phase-1-recovery` at `9f2c01f`. WP 1C-R1 collector: `feat/wp-1c-build-inventory` at `dbe42b5`. WP 1A-R1 manifest: `feat/wp-1a-clip-manifest` at `957089c`, with status correction `2daa176`. Both packages passed independent review and their offline suites.
 - WP 1C-R2 is committed at `a4dff44` on `feat/wp-1c-windows-build`, based on `dbe42b5`. The acquisition, real listing evidence, source and tests passed independent review.
-- WP 1C-R3 is committed at `bbbb76f` on the current branch, `feat/wp-1c-software-smoke`, based on `a4dff44`. It passed real synthetic encoding/filter checks and independent source/evidence review: nine zero-exit commands and three 320x180, 30-frame, one-second outputs. See `spikes/media-capabilities/evidence/2026-10-29-software-smoke.md`. No original footage or hardware encoder has been tested.
-- The owner approved publishing the five completed branches. All five were published and their GitHub ref hashes verified against local commits on 2026-10-29. Elevated Git execution resolves metadata write restrictions. No PR or merge is authorized.
-- Account allowance at about 15:59 PT: 11% remains in the five-hour window and 58% in the weekly window. These are point-in-time readings; recheck at each stable point. Begin wrap-up at 5% remaining or earlier; the handover must be ready and work already stopped at a stable point before either the five-hour or weekly allowance reaches 1%.
+- WP 1C-R3 is committed at `bbbb76f` on `feat/wp-1c-software-smoke`, based on `a4dff44`. It passed real synthetic encoding/filter checks and independent source/evidence review: nine zero-exit commands and three 320x180, 30-frame, one-second outputs. See `spikes/media-capabilities/evidence/2026-10-29-software-smoke.md`. No original footage or hardware encoder has been tested.
+- The owner approved publishing the five completed branches. All five were published and their GitHub ref hashes verified against local commits on 2026-10-29. No PR or merge is authorized.
+- QA-R1 (Claude Code check of the Codex handoff) is on `fix/qa-r1-handoff-fixes`: download-script fixes, a measured shake-reduction check, PowerShell 7 installed and on PATH, and this plain-words summary. Rebuilt Phase 1 plans: `dev-plan/plans/phase-1-wp-plans.md`. Plan: `dev-plan/plans/qa-r1-phase-1-handoff-fixes.md`.
+- Account allowance: read it fresh at session start and at each stable point. Begin wrap-up at 5% remaining or earlier; the handover must be ready and work already stopped at a stable point before either the five-hour or weekly allowance reaches 1%.
 
 ## Machines
 
 | Machine | Details | Availability |
 |---|---|---|
-| Current Windows host | Verified by CIM: Dell Precision 7760, Xeon W-11855M, Intel UHD + RTX A3000 Laptop GPU, 67,865,284,608 bytes RAM, SSSTC 1 TB NVMe. Session path `C:\Users\bchen`; original clips drive is absent. Bundled Git, Python and PowerShell work by absolute paths. Pinned FFmpeg candidate is local and ignored. | Owner's temporary window: available until about 17:00 PT on 2026-10-29; asleep about 17:00-17:20 PT. Stable-stop target: 16:30 PT. Availability after 17:20 awaits owner details. No push permission is implied. |
+| Current Windows host | Verified by CIM: Dell Precision 7760, Xeon W-11855M, Intel UHD + RTX A3000 Laptop GPU, 67,865,284,608 bytes RAM, SSSTC 1 TB NVMe. Session path `C:\Users\bchen`; original clips drive is absent. Git for Windows (system-wide) and PowerShell 7.6.9 (winget package for this user) are installed and on PATH; command-line Git is signed in to GitHub. Pinned FFmpeg candidate is local and ignored. | Unknown; ask the owner at session start. No push permission is implied. |
 | Original Windows reference PC | Historic inventory: i7-14700K, RTX 3080 + UHD 770, 32 GB RAM; Rust, Node.js, Python, Git and Resolve. Clips expected at `I:\My Drive\Agentic projects\kuaide-video-stabilizer_temp`. This machine and its clips are not accessible here. | Unknown; current host results do not satisfy its evidence requirement. |
 | Apple Silicon Mac | Not checked yet | Unknown |
 
@@ -53,7 +63,8 @@ Last updated: 2026-10-29 15:59 PT by Codex.
 
 ## Open questions for the owner
 
-- None needed for bounded replacement planning. Original reviewed plans can still be recovered later; compare any recovered work before combining it with replacements.
+- Approve pushing `fix/qa-r1-handoff-fixes`, opening the six PRs and merging them in the order in the QA-R1 plan. Each push, PR and merge needs a yes in chat.
+- If the original Windows PC is available, push the three unpushed plan branches from it (see "Current position"). Compare any recovered work before combining it with replacements.
 
 ## Waiting for owner hardware
 
@@ -70,11 +81,11 @@ Last updated: 2026-10-29 15:59 PT by Codex.
 - WP 1C-R1: all four offline behavior groups passed in the checkout and in independent review. The collector subsequently passed all six listing/identity commands against real verified FFmpeg and ffprobe binaries.
 - WP 1A-R1: all three fixture behavior groups passed in the checkout and independently. A scratch mutation adding an absolute source path was rejected. No original clips were accessed. This source is on its separate named branch, not merged here.
 - WP 1C-R2: checksum-rejection check passed independently; actual download, pinned hash/size check and extraction succeeded. Exact binary/license hashes, versions and full reported configuration are recorded in evidence. Required stabilization filters, x264/x265 and NVENC/QSV/AMF encoder names are listed.
-- WP 1C-R3: x264, x265 and both libvidstab passes executed successfully on synthetic data. All three outputs passed ffprobe checks; independent review reran the smoke and confirmed an existing-output retry preserves the report. Timings are illustrative, not representative benchmarks. No GPU encoding, original-media probing or quality scoring is established.
+- WP 1C-R3: x264, x265 and both libvidstab passes executed successfully on synthetic data. All three outputs passed ffprobe checks; independent review reran the smoke and confirmed an existing-output retry preserves the report. Timings are illustrative, not representative benchmarks. QA-R1 adds a measured shake check: on a synthetic shaken video the leftover motion fell from 20.67 to 1.88 (ratio 0.09, limit 0.25). No GPU encoding, original-media probing or quality scoring on real footage is established.
 - Binaries and retained download are ignored under `app/third-party/bin/`; raw path-containing inventory is in system temp. No binaries or raw local report are staged. The extracted GPL v3 license file is observed; full source correspondence and dependency license applicability remain unverified.
 - Next: recover or freshly plan WP 1B preview playback and verify its build prerequisites; continue source/dependency provenance review; run hardware/media tests when the original footage/reference machines are available. No Phase 1 engine or preview decision is made. Review integration bases before pushing or opening PRs: the WP 1C branches are stacked, while WP 1A is a separate sibling of the recovery branch.
 
 ## GitHub connection and publication
 
-- Codex GitHub connector verified as `raisinbran`; repository read/write access works. GitHub Desktop also published using its existing sign-in. Command-line Git Credential Manager has no usable sign-in and cannot push noninteractively; do not confuse that with the healthy Codex connector.
+- Codex GitHub connector verified as `raisinbran`; repository read/write access works. GitHub Desktop also published using its existing sign-in. On 2026-10-29 the owner signed command-line Git in to GitHub through Git Credential Manager, so `git push` works from any terminal on the current Windows host.
 - Verified remote heads before this publication-record commit: recovery `9f2c01f`, clip manifest `2daa176`, build inventory `dbe42b5`, Windows build `a4dff44`, software smoke `9079706`. This final record is a following documentation commit on the software-smoke branch; verify its remote HEAD after publication.

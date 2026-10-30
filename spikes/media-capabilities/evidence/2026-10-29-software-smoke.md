@@ -44,6 +44,10 @@ All output checks passed. This demonstrates that these software encoder and two-
 
 Timings describe only these tiny commands on this host, including process startup. They are not representative encoding-speed results and cannot be compared with Phase 1 performance targets.
 
+## Shake-reduction check (added by QA-R1)
+
+A later version of the script adds a measured check. It pans one still `testsrc2` frame along a fixed sine path for two seconds, stabilizes it with libvidstab and compares the mean frame-to-frame brightness difference in the center. On the same host and tools, the shaky video measured 20.67 and the steadied video 1.88, a ratio of 0.09 against a required 0.25 or less. This shows the stabilizer removes simple synthetic panning shake. It says nothing about rotation, rolling shutter, parallax or real footage.
+
 ## Reproduction and limits
 
 Run `spikes/media-capabilities/test-software-runtime.ps1` with the verified executable paths and a new output directory outside the repository and tool directories. The committed script contains the exact arguments and output assertions. It records stdout, stderr, timing and hashes in JSON; it uses a 30-second timeout per command and refuses preexisting output directories.
