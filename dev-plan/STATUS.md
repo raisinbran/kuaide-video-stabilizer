@@ -1,10 +1,14 @@
 # Status
 
-Last updated: 2026-10-30 by Claude Code (WP 1B.1, 1C-B, 1A.1).
+Last updated: 2026-10-29 Pacific time by Codex (WP 1A.2 measurement continuation, after the handover dated 2026-10-30).
 
 ## Current position
 
-In plain words: Phase 1 has started, but most of it is still ahead. So far the agents have a checked copy of FFmpeg for Windows, a script that lists clip files with their fingerprints, and a short test showing that FFmpeg can encode video and that its stabilizer reduces shake on a computer-made test video. No real footage has been tested, no stabilizer has been compared, and the preview test has not started.
+In plain words: Phase 1 is still gathering evidence. FFmpeg's stabilizer has run on five real clips and synthetic clips, and the preview test app exists. The measurement investigation found that dark scenery was being reported as crop and the shake window used 17 frames while claiming 15. The current correction separates the darkness diagnostic from crop and uses 15 frames. Geometric crop remains unmeasured for transformed outputs. No engine choice or Phase 1 approval follows from these results.
+
+- Current branch: `feat/wp-1a-2-libvidstab`, resumed from `d2b016c`. The measurement correction passed the seven behavior groups in `test-libvidstab.ps1` and independent Codex review. Claude Code review is still required before a PR or merge. Five-clip version 2 measurements are being rerun; earlier reports remain preserved.
+- Frame inspection shows different renderings and edits in the two Caltrain files; the MP4 includes live-action footage near its end. They are not matched controls for diagnosing frame-rate effects.
+- This session has no laptop shutdown deadline. The owner permits use of the full current five-hour allowance; the weekly deadline remains in force. No push, PR or merge approval was given.
 
 | Phase 1 part | Done | Still to do |
 |---|---|---|

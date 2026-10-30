@@ -1,7 +1,8 @@
 #requires -Version 7.0
 # Checks the libvidstab engine and measure-run.ps1 on the synthetic shaken still:
 # the copy baseline must measure as unchanged, libvidstab must cut the shake to
-# under half with a small crop, and unsafe filter options must be refused.
+# under half, and unsafe filter options must be refused. Dark-edge detection
+# cannot establish geometric crop, so transformed outputs keep crop unavailable.
 param([Parameter(Mandatory)][string]$FfmpegPath)
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -38,12 +39,12 @@ try {
     Assert-True ($listed.exit_code -eq 0) $listed.messages
 
     $copy = Measure-Settings (Join-Path $PSScriptRoot 'settings/copy-baseline.json') 'copy'
-    Assert-True ([Math]::Abs($copy.reduction - 1) -lt 0.02 -and $copy.crop_pct -lt 1 -and $copy.original.shake_px -gt 10) "Copy baseline did not measure as unchanged: $($copy | ConvertTo-Json -Compress)"
+    Assert-True ([Math]::Abs($copy.reduction - 1) -lt 0.02 -and $copy.crop_pct -eq 0 -and $copy.crop_status -eq 'unchanged_bytes' -and $copy.original.shake_px -gt 10) "Copy baseline did not measure as unchanged: $($copy | ConvertTo-Json -Compress)"
     Write-Output 'PASS the unstabilized baseline measures as unchanged with no crop'
 
     $stabilized = Measure-Settings (Join-Path $PSScriptRoot 'settings/libvidstab-auto.json') 'auto'
-    Assert-True ($stabilized.reduction -lt 0.5 -and $stabilized.crop_pct -gt 0 -and $stabilized.crop_pct -lt 30) "libvidstab did not reduce shake as expected: $($stabilized | ConvertTo-Json -Compress)"
-    Write-Output "PASS libvidstab cuts synthetic shake to $([int]($stabilized.reduction * 100))% with $($stabilized.crop_pct)% crop"
+    Assert-True ($stabilized.reduction -lt 0.5 -and $null -eq $stabilized.crop_pct -and $stabilized.crop_status -eq 'geometric_measurement_unavailable') "libvidstab did not reduce shake with crop uncertainty preserved: $($stabilized | ConvertTo-Json -Compress)"
+    Write-Output "PASS libvidstab cuts synthetic shake to $([int]($stabilized.reduction * 100))%; geometric crop remains unavailable"
 
     $unsafe = Join-Path $work 'unsafe.json'
     @{ engine = 'libvidstab'; name = 'unsafe'; detect = 'shakiness=5'; transform = 'smoothing=10,drawtext=text=x'; preset = 'veryfast'; crf = 18 } | ConvertTo-Json | Set-Content -LiteralPath $unsafe
@@ -60,6 +61,8 @@ try {
         fps60 = "& `$FfmpegPath -v error -nostdin -i `$InputPath -vf 'minterpolate=fps=60' -c:v libx264 -preset veryfast -crf 18 `$OutputPath"
         frozen = "& `$FfmpegPath -v error -nostdin -i `$InputPath -vf 'select=eq(n\,0),loop=loop=-1:size=1,trim=end_frame=120,setpts=N/30/TB' -c:v libx264 -preset veryfast -crf 18 `$OutputPath"
         short = "& `$FfmpegPath -v error -nostdin -i `$InputPath -vf 'select=not(mod(n\,2)),setpts=N/30/TB' -c:v libx264 -preset veryfast -crf 18 `$OutputPath"
+        dark = "& `$FfmpegPath -v error -nostdin -i `$InputPath -vf 'drawbox=x=0:y=0:w=iw:h=ih/5:color=black:t=fill' -c:v libx264 -preset veryfast -crf 18 `$OutputPath"
+        rotated = "& `$FfmpegPath -v error -nostdin -i `$InputPath -vf 'rotate=0.1:fillcolor=black' -c:v libx264 -preset veryfast -crf 18 `$OutputPath"
     }
     $measured = @{}
     foreach ($name in $fixtures.Keys) {
@@ -80,6 +83,11 @@ try {
     Write-Output 'PASS a frozen output is flagged'
     Assert-True ($measured.short.exit_code -ne 0 -and $measured.short.messages -match 'frames at 30 fps') 'An output with half the frames was measured.'
     Write-Output 'PASS an output with missing frames is refused'
+    foreach ($name in @('dark', 'rotated')) {
+        Assert-True ($measured[$name].exit_code -eq 0 -and $null -eq $measured[$name].clip.crop_pct -and $measured[$name].clip.crop_status -eq 'geometric_measurement_unavailable') "Uncertain crop was presented as measured for $name."
+    }
+    Assert-True ($measured.dark.clip.observed_dark_edges_pct -gt 10) 'The dark-edge fixture did not exercise the misleading border detector.'
+    Write-Output 'PASS dark edges and rotated corners do not become crop scores'
     Remove-Item -LiteralPath $work -Recurse -Force
 } finally {
     $env:KUAIDE_CLIPS_DIR = $prior

@@ -1,22 +1,19 @@
 #requires -Version 7.0
-# WP 1A.2: measures leftover shake and needed crop for every successful clip in
+# WP 1A.2: measures leftover shake and dark edges for every successful clip in
 # a benchmark run, and writes metrics.json into the run folder.
 #
 # Shake: both the original and the output are first brought to one analysis
-# form: 30 fps, the central 70% of the frame (so black borders are not in view),
+# form: 30 fps, the central 70% of the frame (to reduce border interference),
 # scaled to 640 px wide, 8-bit. libvidstab then estimates the camera motion
 # between frames (x, y). Slow intended motion is removed with a 15-frame (0.5 s)
 # moving average; shake_px is the RMS of what remains, in analysis pixels per
 # 1/30 s, so clips and engines of any size and frame rate compare directly.
-# Frames where the original jumps (cuts, black frames) are dropped from both.
+# Large original-motion outliers are dropped from both; they do not prove cuts.
 # reduction is output shake / original shake (lower is steadier; 1 is unchanged).
 # Frozen output would look perfectly steady, so frozen time is measured too and
 # a clip whose output freezes 1 s more than its original is flagged.
-# Crop: cropdetect finds the picture area in every output frame; crop_pct is
-# the share of the frame outside the area that is picture in all frames. Black
-# frames are skipped and each edge comes from the 99th-percentile frame. Dark
-# frame edges also read as border, so crop_pct is an upper bound; an engine that
-# zooms to fill the frame shows 0 here and reports its zoom separately.
+# Dark-edge detection confuses dark scenery with borders and misses rotated
+# corners. Geometric crop is unavailable; identical bytes prove zero added crop.
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)][string]$RunDirectory,
@@ -49,7 +46,8 @@ function Get-Motion([string]$Path, [string]$Work) {
 # and its squared size (all motion).
 function Get-Residual($Motion) {
     for ($i = 0; $i -lt $Motion.Count; $i++) {
-        $from = [Math]::Max(0, $i - [int]($Window / 2)); $to = [Math]::Min($Motion.Count - 1, $i + [int]($Window / 2))
+        $radius = [int][Math]::Floor($Window / 2)
+        $from = [Math]::Max(0, $i - $radius); $to = [Math]::Min($Motion.Count - 1, $i + $radius)
         $mx = 0.0; $my = 0.0
         for ($j = $from; $j -le $to; $j++) { $mx += $Motion[$j].x; $my += $Motion[$j].y }
         $n = $to - $from + 1
@@ -95,8 +93,8 @@ function Measure-Pair([string]$Original, [string]$Output, [string]$Work) {
     $count = [Math]::Min($before.Count, $after.Count)
     $inResidual = @(Get-Residual $before)[0..($count - 1)]
     $outResidual = @(Get-Residual $after)[0..($count - 1)]
-    # Cuts and black frames give single huge jumps in the original that are not
-    # shake; drop those frames, more than 10 times the median size, from both.
+    # Large outliers can come from cuts, moving subjects or tracking failures.
+    # The same original-based exclusions keep both measurements on equal frames.
     $sorted = @($inResidual.shake | Sort-Object)
     $limit = [Math]::Max(100 * $sorted[[int]($sorted.Count / 2)], 1.0)
     $keep = [bool[]]@($inResidual | ForEach-Object { $_.shake -le $limit })
@@ -112,7 +110,7 @@ function Measure-Pair([string]$Original, [string]$Output, [string]$Work) {
         frozen_output = ($frozenOut - $frozenIn) -gt 1.0
     }
 }
-function Get-CropPercent([string]$Path) {
+function Get-DarkEdgePercent([string]$Path) {
     $lines = & $FfmpegPath -hide_banner -nostdin -i $Path -vf 'format=yuv420p,cropdetect=limit=24:round=2:reset=1' -f null - 2>&1 | ForEach-Object { "$_" }
     if ($LASTEXITCODE -ne 0) { throw "cropdetect failed: $Path" }
     # The last Video line is the filtered stream, after rotation is applied.
@@ -145,16 +143,20 @@ try {
     $metrics = foreach ($result in @($run.results | Where-Object status -eq 'ok')) {
         $folder = Join-Path $RunDirectory ($result.file_name -replace '[^A-Za-z0-9._-]', '_')
         $output = @(Get-ChildItem -LiteralPath $folder -Filter 'output.*' -File)[0].FullName
-        $pair = Measure-Pair (Join-Path $clips $result.file_name) $output (Join-Path $scratch ($result.file_name -replace '[^A-Za-z0-9._-]', '_'))
+        $original = Join-Path $clips $result.file_name
+        $identical = (Get-FileHash -LiteralPath $original -Algorithm SHA256).Hash -eq (Get-FileHash -LiteralPath $output -Algorithm SHA256).Hash
+        $pair = Measure-Pair $original $output (Join-Path $scratch ($result.file_name -replace '[^A-Za-z0-9._-]', '_'))
         $entry = [ordered]@{ file_name = $result.file_name; engine = $run.engine; settings_name = $run.settings_name; elapsed_ms = $result.elapsed_ms }
         foreach ($key in $pair.Keys) { $entry[$key] = $pair[$key] }
-        $entry.crop_pct = Get-CropPercent $output
+        $entry.observed_dark_edges_pct = Get-DarkEdgePercent $output
+        $entry.crop_pct = if ($identical) { 0.0 } else { $null }
+        $entry.crop_status = if ($identical) { 'unchanged_bytes' } else { 'geometric_measurement_unavailable' }
         $entry
     }
 } finally { Remove-Item -LiteralPath $scratch -Recurse -Force -ErrorAction SilentlyContinue }
 $file = [IO.File]::Open($metricsPath, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None)
 try {
-    $bytes = [Text.UTF8Encoding]::new($false).GetBytes((@{ window_frames = $Window; analysis = $Analysis; clips = @($metrics) } | ConvertTo-Json -Depth 6) + [Environment]::NewLine)
+    $bytes = [Text.UTF8Encoding]::new($false).GetBytes((@{ measurement_version = 2; window_frames = $Window; analysis = $Analysis; clips = @($metrics) } | ConvertTo-Json -Depth 6) + [Environment]::NewLine)
     $file.Write($bytes, 0, $bytes.Length)
 } finally { $file.Dispose() }
 Write-Output $metricsPath
