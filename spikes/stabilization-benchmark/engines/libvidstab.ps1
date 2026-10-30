@@ -19,6 +19,10 @@ Set-Location -LiteralPath $WorkDirectory
 foreach ($value in @($settings.detect, $settings.transform)) {
     if ($value -match "result|input|[\\/\[\];,']") { throw "Unsafe filter options: $value" }
 }
+# The border mask only shows borders when they stay black and nothing zooms them away.
+if ($settings.transform -notmatch '(^|:)crop=black(:|$)' -or $settings.transform -notmatch '(^|:)optzoom=0(:|$)') {
+    throw "Crop can only be measured with crop=black and optzoom=0: $($settings.transform)"
+}
 
 & $FfmpegPath -hide_banner -nostdin -n -i $InputPath -vf "vidstabdetect=$($settings.detect):result=motion.trf" -f null -
 if ($LASTEXITCODE -ne 0) { throw "vidstabdetect failed ($LASTEXITCODE)" }

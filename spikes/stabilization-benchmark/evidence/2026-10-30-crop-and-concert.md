@@ -22,13 +22,15 @@ Shake is output / original (translation only, lower is steadier). Change is the 
 
 Unchanged copies: ratio 1, 0% crop. No output was flagged as frozen.
 
-The tuned room-walk result removes the most shake but keeps only about a quarter of the frame, which would not be usable as a fixed crop. Automatic is the more usable result on this clip so far.
+The tuned room-walk result keeps only 25.9% of the frame, which would not be usable as a fixed crop. That is less than the 49% analysis window, so black border enters the measured area and its 0.418 and 0.874 are affected; do not read them as a clean shake result. Automatic is the more usable result on this clip so far.
+
+Caltrain .webm automatic (0.275 shake with 0% crop) is unexplained and needs a viewing check.
 
 ## Concert clip
 
-The contact sheet shows sweeping stage lights, fog, a changing video wall and a moving crowd in the foreground, so few stable features exist for tracking. In 5-second sections the frame-to-frame change of auto and tuned outputs stays at or just below the original (whole clip 8.32 original, 8.10 auto, 8.06 tuned; 21.85, 21.75, 21.87 in the light burst at 20-25 s). Nothing shows the output getting twice as shaky. The shake score there is most likely tracking noise from moving scenery. This is strong evidence, not proof: picture change also includes the scene itself and is dominated by it on this clip. Whether stabilization helps this clip needs a viewing check (WP 1A.4). The 36-39% crop suggests that libvidstab also moved the frame a lot in response to the scenery, which does cost picture.
+The contact sheet shows sweeping stage lights, fog, a changing video wall and a moving crowd in the foreground, so few stable features exist for tracking. In 5-second sections the frame-to-frame change of auto and tuned outputs stays at or just below the original (whole clip 8.32 original, 8.10 auto, 8.06 tuned; 21.85, 21.75, 21.87 in the light burst at 20-25 s). Nothing shows the output getting twice as shaky, and moving scenery is a likely cause of the score. This is weak evidence, not proof: picture change is dominated by the scene itself on this clip, and every stabilized output in the table scores below 1, so a ratio of 0.97 says little. Whether stabilization helps this clip needs a viewing check (WP 1A.4). The 36-39% crop suggests that libvidstab also moved the frame a lot in response to the scenery, which does cost picture.
 
-`shake_score_suspect` marks a clip when shake rises by over 10% but picture change does not rise. It marks only this clip, under both settings.
+`shake_score_suspect` is a hint: shake rises by over 10% but picture change does not rise. It marks only this clip, under both settings. No test covers its true case.
 
 ## Limits
 

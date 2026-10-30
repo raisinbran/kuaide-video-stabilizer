@@ -43,7 +43,7 @@ try {
     Write-Output 'PASS the unstabilized baseline measures as unchanged with no crop'
 
     $stabilized = Measure-Settings (Join-Path $PSScriptRoot 'settings/libvidstab-auto.json') 'auto'
-    Assert-True ($stabilized.reduction -lt 0.5 -and $stabilized.crop_status -eq 'geometric_mask' -and $stabilized.crop_pct -gt 2 -and $stabilized.crop_pct -lt 50 -and $stabilized.frame_change_ratio -lt 0.8) "libvidstab did not reduce shake with a measured crop: $($stabilized | ConvertTo-Json -Compress)"
+    Assert-True ($stabilized.reduction -lt 0.5 -and $stabilized.crop_status -eq 'geometric_mask' -and $stabilized.crop_pct -gt 12 -and $stabilized.crop_pct -lt 25 -and $stabilized.frame_change_ratio -lt 0.8) "libvidstab did not reduce shake with a measured crop: $($stabilized | ConvertTo-Json -Compress)"
     Write-Output "PASS libvidstab cuts synthetic shake to $([int]($stabilized.reduction * 100))% with $($stabilized.crop_pct)% crop"
 
     $unsafe = Join-Path $work 'unsafe.json'
@@ -51,6 +51,11 @@ try {
     $refused = Invoke-Script 'run-benchmark.ps1' @('-SettingsPath', $unsafe, '-OutputDirectory', (Join-Path $work 'run-unsafe'), '-ManifestPath', (Join-Path $work 'manifest/clips.manifest.json'), '-FfmpegPath', $FfmpegPath)
     $report = Get-Content -LiteralPath (Join-Path $work 'run-unsafe/run.json') -Raw | ConvertFrom-Json
     Assert-True ($refused.exit_code -eq 1 -and @($report.results | Where-Object { $_.status -eq 'failed' -and $_.log_tail -match 'Unsafe filter options' }).Count -eq $report.clips) 'Unsafe filter options were not refused.'
+    $zoomed = Join-Path $work 'zoomed.json'
+    @{ engine = 'libvidstab'; name = 'zoomed'; detect = 'shakiness=5'; transform = 'smoothing=10:optalgo=gauss:optzoom=1'; preset = 'veryfast'; crf = 18 } | ConvertTo-Json | Set-Content -LiteralPath $zoomed
+    $zoomRun = Invoke-Script 'run-benchmark.ps1' @('-SettingsPath', $zoomed, '-OutputDirectory', (Join-Path $work 'run-zoomed'), '-ManifestPath', (Join-Path $work 'manifest/clips.manifest.json'), '-FfmpegPath', $FfmpegPath)
+    $zoomReport = Get-Content -LiteralPath (Join-Path $work 'run-zoomed/run.json') -Raw | ConvertFrom-Json
+    Assert-True ($zoomRun.exit_code -eq 1 -and @($zoomReport.results | Where-Object { $_.log_tail -match 'Crop can only be measured' }).Count -eq $zoomReport.clips) 'Settings that hide borders were not refused.'
     Write-Output 'PASS filter options that add filters or name files are refused'
 
     # Stand-in engines that would fool a careless measure.

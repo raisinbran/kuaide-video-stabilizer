@@ -11,7 +11,7 @@
 # Large original-motion outliers are dropped from both; they do not prove cuts.
 # reduction is output shake / original shake (lower is steadier; 1 is unchanged).
 # frame_change_ratio is the same comparison for raw picture change, which needs no
-# tracking; shake_score_suspect marks clips where tracking says worse but it does not.
+# tracking; shake_score_suspect is a hint that tracking says worse but it does not.
 # Frozen output would look perfectly steady, so frozen time is measured too and
 # a clip whose output freezes 1 s more than its original is flagged.
 # Crop: identical bytes prove zero added crop. Otherwise crop_pct comes from the
@@ -123,7 +123,8 @@ function Measure-Pair([string]$Original, [string]$Output, [string]$Work) {
         reduction = if ($inSummary.shake_px -gt 0) { [Math]::Round($outSummary.shake_px / $inSummary.shake_px, 3) } else { $null }
         frame_change_original = $changeIn; frame_change_output = $changeOut
         frame_change_ratio = if ($changeIn -gt 0) { [Math]::Round($changeOut / $changeIn, 3) } else { $null }
-        # True when tracking says worse but the picture does not: the shake score is suspect.
+        # A hint to look at the clip, not a verdict: nearly every stabilized output has
+        # a ratio below 1, and black borders may lower it. No test covers the true case.
         shake_score_suspect = $inSummary.shake_px -gt 0 -and ($outSummary.shake_px / $inSummary.shake_px) -gt 1.1 -and $changeIn -gt 0 -and ($changeOut / $changeIn) -le 1.0
         frozen_seconds_original = $frozenIn; frozen_seconds_output = $frozenOut
         frozen_output = ($frozenOut - $frozenIn) -gt 1.0

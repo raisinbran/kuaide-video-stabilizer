@@ -6,7 +6,7 @@ Last updated: 2026-10-30 by Claude Code (WP 1A.2 crop method and concert investi
 
 In plain words: Phase 1 is still gathering evidence. FFmpeg's stabilizer has run on five real clips and computer-made clips, and the preview test app exists. Shake and crop can now both be measured. So far only one clip is truly shaky, so no stabilizer choice can be made yet. Gyroflow and DaVinci Resolve have not run.
 
-- Current branch: `feat/wp-1a-2-libvidstab`, resumed from `d2b016c`. The measurement correction passed the seven behavior groups in `test-libvidstab.ps1` and independent Codex review. Claude Code review is still required before a PR or merge. All 15 real clip/settings pairs were remeasured successfully with version 2; earlier reports remain preserved. Results and limits: `spikes/stabilization-benchmark/evidence/2026-10-29-measurement-correction.md`.
+- Current branch: `feat/wp-1a-2-libvidstab`. Codex's measurement correction passed Claude Code review (all claims reproduced). Added since: geometric crop from a stabilized white mask, and a picture-change cross-check. `test-libvidstab.ps1` passes all 8 groups; reports use `measurement_version=4`; a fresh agent approved it and its findings are fixed. Results and limits: `spikes/stabilization-benchmark/evidence/2026-10-30-crop-and-concert.md`. Not pushed or merged; Gyroflow not started.
 - Frame inspection shows different renderings and edits in the two Caltrain files; the MP4 includes live-action footage near its end. They are not matched controls for diagnosing frame-rate effects.
 - This session has no laptop shutdown deadline. The owner permits use of the full current five-hour allowance; the weekly deadline remains in force. No push, PR or merge approval was given.
 
