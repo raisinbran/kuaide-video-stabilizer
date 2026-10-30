@@ -15,7 +15,7 @@ Phase 1 is done when `dev-plan/decision-record.md` covers every item in the crit
 | 1C-A Windows FFmpeg build and inventory | needs-windows | none | Done as replacements 1C-R1, 1C-R2, 1C-R3 (plus QA-R1) |
 | 1A.1 Clip manifest and benchmark harness | needs-windows | 1C-A | Part done: manifest (1A-R1). Harness not started |
 | 1B.1 Tauri preview test app | needs-windows | none | Done on Windows (PR #8, `wp-1b-1-preview-app.md`) |
-| 1C-B Camera-file probing and hardware encoders | needs-windows, needs-mac | 1C-A | Not started |
+| 1C-B Camera-file probing and hardware encoders | needs-windows, needs-mac | 1C-A | Windows part done (`evidence/2026-10-30-clip-probes-and-encoders.md`); NVENC and Mac open |
 | 1A.2 FFmpeg and Gyroflow runs | needs-windows | 1A.1 | Not started |
 | 1B.2 Playback and seek measurements | needs-windows, needs-mac | 1B.1 | Not started |
 | 1C-C Mac FFmpeg build and HDR-to-SDR method | needs-mac | 1C-B | Not started |
