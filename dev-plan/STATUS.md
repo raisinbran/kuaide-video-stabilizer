@@ -9,7 +9,7 @@ In plain words: Phase 1 has started, but most of it is still ahead. So far the a
 | Phase 1 part | Done | Still to do |
 |---|---|---|
 | 1A Stabilization benchmark | A script that lists clip files with their fingerprints | Run the stabilizers (FFmpeg's, Gyroflow, DaVinci Resolve) on your clips, score them, and build the side-by-side comparison page |
-| 1B Preview playback | Nothing | Build a small test version of the app window (Tauri) and measure how smoothly it plays and seeks video |
+| 1B Preview playback | A small test version of the app window (Tauri) that plays and skips through a 1080p video in two ways (WP 1B.1) | Measure how smoothly it plays and seeks on Windows and Mac, and test the WebGL color shader |
 | 1C Media tools | One exact Windows FFmpeg build, downloaded and checked; tests that it can encode video and reduce shake on a computer-made video | A Mac FFmpeg build; video encoding on the graphics card; reading the settings of your camera files; choosing how to convert HDR (bright, wide-color) video to normal video; finishing the license check, which is partly done |
 | Decision record | Nothing | Write `dev-plan/decision-record.md` for your approval |
 
@@ -22,6 +22,7 @@ In plain words: Phase 1 has started, but most of it is still ahead. So far the a
 - WP 1C-R3 is committed at `bbbb76f` on `feat/wp-1c-software-smoke`, based on `a4dff44`. It passed real synthetic encoding/filter checks and independent source/evidence review: nine zero-exit commands and three 320x180, 30-frame, one-second outputs. See `spikes/media-capabilities/evidence/2026-10-29-software-smoke.md`. No original footage or hardware encoder has been tested.
 - The owner approved publishing the five completed branches. All five were published and their GitHub ref hashes verified against local commits on 2026-10-29. Later PRs and merges each need a new owner approval.
 - QA-R1 (Claude Code check of the Codex handoff), merged as `a324897`: download-script fixes, a measured shake-reduction check, PowerShell 7 installed and on PATH, and this plain-words summary. Rebuilt Phase 1 plans: `dev-plan/plans/phase-1-wp-plans.md`. Plan: `dev-plan/plans/qa-r1-phase-1-handoff-fixes.md`.
+- WP 1B.1 (Tauri preview test app), merged as `f6ced85` (PR #8): plays and seeks a 1080p H.264 file by custom protocol and by a loopback HTTP server on Windows; 8 Rust tests pass; reviewed by a fresh agent. Record: `dev-plan/plans/wp-1b-1-preview-app.md`. Rust 1.99.1 and Node.js 26 LTS are installed on the current laptop.
 - Account allowance: read it fresh at session start and at each stable point. Begin wrap-up at 5% remaining or earlier; the handover must be ready and work already stopped at a stable point before either the five-hour or weekly allowance reaches 1%.
 
 ## Machines
@@ -64,7 +65,7 @@ In plain words: Phase 1 has started, but most of it is still ahead. So far the a
 
 ## Open questions for the owner
 
-- Which Phase 1 piece to start next. Recommended: 1B.1 (Tauri test app), the only one that needs no clips or extra hardware, after installing Rust, Node.js and the Tauri prerequisites on this laptop. See `dev-plan/plans/phase-1-wp-plans.md`.
+- Which Phase 1 piece to start next. Options that need no clips: 1B.2 (playback measurements; Windows now, Mac later). Pieces 1A.2, 1A.3 and 1C-B need the real clips folder. See `dev-plan/plans/phase-1-wp-plans.md`.
 - If the original Windows PC is available, push the three unpushed plan branches from it (see "Current position"). Compare any recovered work before combining it with replacements.
 
 ## Waiting for owner hardware
@@ -85,7 +86,7 @@ In plain words: Phase 1 has started, but most of it is still ahead. So far the a
 - WP 1C-R2: checksum-rejection check passed independently; actual download, pinned hash/size check and extraction succeeded. Exact binary/license hashes, versions and full reported configuration are recorded in evidence. Required stabilization filters, x264/x265 and NVENC/QSV/AMF encoder names are listed.
 - WP 1C-R3: x264, x265 and both libvidstab passes executed successfully on synthetic data. All three outputs passed ffprobe checks; independent review reran the smoke and confirmed an existing-output retry preserves the report. Timings are illustrative, not representative benchmarks. QA-R1 adds a measured shake check: on a synthetic shaken video the leftover motion fell from 20.67 to 1.88 (ratio 0.09, limit 0.25). No GPU encoding, original-media probing or quality scoring on real footage is established.
 - Binaries and retained download are ignored under `app/third-party/bin/`; raw path-containing inventory is in system temp. No binaries or raw local report are staged. The extracted GPL v3 license file is observed; full source correspondence and dependency license applicability remain unverified.
-- Next: recover or freshly plan WP 1B preview playback and verify its build prerequisites; continue source/dependency provenance review; run hardware/media tests when the original footage/reference machines are available. No Phase 1 engine or preview decision is made. Review integration bases before pushing or opening PRs: the WP 1C branches are stacked, while WP 1A is a separate sibling of the recovery branch.
+- Next: WP 1B.2 playback measurements, or clip-based work once the clips folder is reachable; continue source/dependency provenance review. No Phase 1 engine or preview decision is made.
 
 ## GitHub connection and publication
 
