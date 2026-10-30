@@ -12,7 +12,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 function Resolve-PlainPath([string]$Path, [bool]$Directory) {
-    $item = Get-Item -LiteralPath $Path
+    $item = Get-Item -LiteralPath $Path -Force
     if ($item.PSIsContainer -ne $Directory) { throw "Unexpected path kind: $Path" }
     $cursor = $item
     while ($null -ne $cursor) {

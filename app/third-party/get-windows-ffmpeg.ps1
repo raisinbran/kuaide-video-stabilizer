@@ -1,6 +1,6 @@
 #requires -Version 7.0
 [CmdletBinding()]
-param([string]$ArchivePath)
+param([string]$ArchivePath, [ValidateRange(1, 240)][int]$TimeoutMinutes = 30)
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 if (-not $IsWindows -or [Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString() -ne 'X64') {
@@ -40,16 +40,16 @@ if ($ArchivePath) {
     $archiveFile = Join-Path $bin ('download-' + [Guid]::NewGuid().ToString('N') + '.zip.partial')
     $output = [IO.File]::Open($archiveFile, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None)
     $client = [Net.Http.HttpClient]::new()
-    $cancel = [Threading.CancellationTokenSource]::new([TimeSpan]::FromMinutes(5))
+    $cancel = [Threading.CancellationTokenSource]::new([TimeSpan]::FromMinutes($TimeoutMinutes))
     $response = $null
-    $input = $null
+    $download = $null
     try {
         $response = $client.GetAsync($url, [Net.Http.HttpCompletionOption]::ResponseHeadersRead, $cancel.Token).GetAwaiter().GetResult()
         $response.EnsureSuccessStatusCode() | Out-Null
-        $input = $response.Content.ReadAsStreamAsync().GetAwaiter().GetResult()
-        $input.CopyToAsync($output, 81920, $cancel.Token).GetAwaiter().GetResult() | Out-Null
+        $download = $response.Content.ReadAsStreamAsync().GetAwaiter().GetResult()
+        $download.CopyToAsync($output, 81920, $cancel.Token).GetAwaiter().GetResult() | Out-Null
     } finally {
-        if ($null -ne $input) { $input.Dispose() }
+        if ($null -ne $download) { $download.Dispose() }
         if ($null -ne $response) { $response.Dispose() }
         $output.Dispose()
         $cancel.Dispose()
@@ -80,6 +80,12 @@ try {
     if ($null -ne $zip) { $zip.Dispose() }
     $sha.Dispose()
     $file.Dispose()
+}
+# A verified, fully extracted download is complete, so drop the .partial suffix.
+# The tools are already in place, so a failed rename only warns.
+if (-not $ArchivePath) {
+    try { [IO.File]::Move($archiveFile, ($archiveFile -replace '\.partial$', '')) }
+    catch { Write-Warning "Verified archive kept its .partial name: $($_.Exception.Message)" }
 }
 Write-Output (Join-Path $destination "$asset/bin/ffmpeg.exe")
 Write-Output (Join-Path $destination "$asset/bin/ffprobe.exe")
