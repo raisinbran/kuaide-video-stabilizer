@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-10-29 by Claude Code (QA-R1 fixes).
+Last updated: 2026-10-30 by Claude Code (WP 1B.1, 1C-B, 1A.1).
 
 ## Current position
 
@@ -8,9 +8,9 @@ In plain words: Phase 1 has started, but most of it is still ahead. So far the a
 
 | Phase 1 part | Done | Still to do |
 |---|---|---|
-| 1A Stabilization benchmark | A script that lists clip files with their fingerprints | Run the stabilizers (FFmpeg's, Gyroflow, DaVinci Resolve) on your clips, score them, and build the side-by-side comparison page |
+| 1A Stabilization benchmark | A list of the clips with their fingerprints; a harness that runs one stabilizer on every clip safely and records the results; two computer-made test clips (shaken still, hard cut) | Run FFmpeg's stabilizer, Gyroflow and DaVinci Resolve on your clips, score them, and build the side-by-side comparison page |
 | 1B Preview playback | A small test version of the app window (Tauri) that plays and skips through a 1080p video in two ways (WP 1B.1) | Measure how smoothly it plays and seeks on Windows and Mac, and test the WebGL color shader |
-| 1C Media tools | One exact Windows FFmpeg build, downloaded and checked; tests that it can encode video and reduce shake on a computer-made video | A Mac FFmpeg build; video encoding on the graphics card; reading the settings of your camera files; choosing how to convert HDR (bright, wide-color) video to normal video; finishing the license check, which is partly done |
+| 1C Media tools | One exact Windows FFmpeg build, checked; it encodes video and reduces shake on a computer-made video; your three clips read (format, rotation, frame rate, color); Intel Quick Sync encoding works on this laptop | NVIDIA encoding (this FFmpeg needs a newer NVIDIA driver than the laptop has); a Mac FFmpeg build; HDR, varying-frame-rate and gyro clips; choosing how to convert HDR video to normal video; finishing the license check |
 | Decision record | Nothing | Write `dev-plan/decision-record.md` for your approval |
 
 - Phase 0 (repository setup) is complete. The GitHub repo is renamed to `kuaide-video-stabilizer`. No app code yet.
@@ -23,6 +23,7 @@ In plain words: Phase 1 has started, but most of it is still ahead. So far the a
 - The owner approved publishing the five completed branches. All five were published and their GitHub ref hashes verified against local commits on 2026-10-29. Later PRs and merges each need a new owner approval.
 - QA-R1 (Claude Code check of the Codex handoff), merged as `a324897`: download-script fixes, a measured shake-reduction check, PowerShell 7 installed and on PATH, and this plain-words summary. Rebuilt Phase 1 plans: `dev-plan/plans/phase-1-wp-plans.md`. Plan: `dev-plan/plans/qa-r1-phase-1-handoff-fixes.md`.
 - WP 1B.1 (Tauri preview test app), merged as `f6ced85` (PR #8): plays and seeks a 1080p H.264 file by custom protocol and by a loopback HTTP server on Windows; 8 Rust tests pass; reviewed by a fresh agent. Record: `dev-plan/plans/wp-1b-1-preview-app.md`. Rust 1.99.1 and Node.js 26 LTS are installed on the current laptop.
+- Clip folder support and clip list, merged as `663ae7c` (PR #10). WP 1C-B Windows part, merged as `4e1c609` (PR #11): see `spikes/media-capabilities/evidence/2026-10-30-clip-probes-and-encoders.md`. `IMG_0225.MOV` is H.264 in portrait, not HEVC; no current clip is HDR, variable-rate or has gyro data. NVENC fails with the pinned FFmpeg because it needs NVIDIA driver 610+ (laptop: 581.95); Quick Sync works. WP 1A.1 benchmark harness, merged as `058461b` (PR #12). Each was reviewed by a fresh agent and its findings fixed.
 - Account allowance: read it fresh at session start and at each stable point. Begin wrap-up at 5% remaining or earlier; the handover must be ready and work already stopped at a stable point before either the five-hour or weekly allowance reaches 1%.
 
 ## Machines
@@ -65,7 +66,8 @@ In plain words: Phase 1 has started, but most of it is still ahead. So far the a
 
 ## Open questions for the owner
 
-- Which Phase 1 piece to start next. Options that need no clips: 1B.2 (playback measurements; Windows now, Mac later). Pieces 1A.2, 1A.3 and 1C-B need the real clips folder. See `dev-plan/plans/phase-1-wp-plans.md`.
+- Which Phase 1 piece to start next. Recommended: 1A.2 (FFmpeg stabilizer and Gyroflow runs in the harness); it is larger, so start it with plenty of allowance left. Also open: 1B.2 playback measurements. See `dev-plan/plans/phase-1-wp-plans.md`.
+- The FFmpeg build choice must handle older NVIDIA drivers: pick a build with older NVENC headers, or set and check a minimum driver version.
 - If the original Windows PC is available, push the three unpushed plan branches from it (see "Current position"). Compare any recovered work before combining it with replacements.
 
 ## Waiting for owner hardware
@@ -77,7 +79,8 @@ In plain words: Phase 1 has started, but most of it is still ahead. So far the a
 - `dev-plan/handover/2026-10-29-phase-1-planning.md` (copied from the published coordination branch).
 - `dev-plan/handover/2026-10-29-recovery-and-allowance.md` (current local recovery record).
 - `dev-plan/handover/2026-10-29-phase-1-spikes.md` (Codex continuation instructions and branch map, before QA).
-- `dev-plan/handover/2026-10-29-qa-and-merge.md` (latest: QA, rebuilt plans and merges into `main`).
+- `dev-plan/handover/2026-10-29-qa-and-merge.md` (QA, rebuilt plans and merges into `main`).
+- `dev-plan/handover/2026-10-30-1b1-1cb-1a1.md` (latest: WP 1B.1, 1C-B Windows part and 1A.1).
 
 ## Verification and next work
 
@@ -86,7 +89,7 @@ In plain words: Phase 1 has started, but most of it is still ahead. So far the a
 - WP 1C-R2: checksum-rejection check passed independently; actual download, pinned hash/size check and extraction succeeded. Exact binary/license hashes, versions and full reported configuration are recorded in evidence. Required stabilization filters, x264/x265 and NVENC/QSV/AMF encoder names are listed.
 - WP 1C-R3: x264, x265 and both libvidstab passes executed successfully on synthetic data. All three outputs passed ffprobe checks; independent review reran the smoke and confirmed an existing-output retry preserves the report. Timings are illustrative, not representative benchmarks. QA-R1 adds a measured shake check: on a synthetic shaken video the leftover motion fell from 20.67 to 1.88 (ratio 0.09, limit 0.25). No GPU encoding, original-media probing or quality scoring on real footage is established.
 - Binaries and retained download are ignored under `app/third-party/bin/`; raw path-containing inventory is in system temp. No binaries or raw local report are staged. The extracted GPL v3 license file is observed; full source correspondence and dependency license applicability remain unverified.
-- Next: WP 1B.2 playback measurements, or clip-based work once the clips folder is reachable; continue source/dependency provenance review. No Phase 1 engine or preview decision is made.
+- Next: WP 1A.2 (libvidstab and Gyroflow engines, crop and leftover-shake measurement), then 1A.3 Resolve and 1B.2. Owner clips for HDR, gyro, 4K and other cases are still needed for the engine choice. No Phase 1 engine or preview decision is made.
 
 ## GitHub connection and publication
 
