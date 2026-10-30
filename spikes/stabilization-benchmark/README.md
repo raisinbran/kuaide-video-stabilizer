@@ -25,3 +25,21 @@ pwsh -NoProfile -File ./spikes/stabilization-benchmark/test-clip-manifest.ps1
 ```
 
 The checks create temporary byte fixtures with spaced and Unicode names, invoke the public script in child PowerShell processes and verify hashes, unknown evidence, output guards and the environment requirement. They do not access real footage or prove media validity. They print and preserve the unique temporary results directory for inspection.
+
+## Benchmark harness (WP 1A.1)
+
+`run-benchmark.ps1` runs one engine with one settings file on every clip in `clips.manifest.json` (clips read from `KUAIDE_CLIPS_DIR`). Before starting it checks every clip's size and SHA-256 and that no two clips map to the same output folder, and refuses an output folder inside the repository or the clips directory. It then runs the engine once per clip in its own process with a timeout (`-TimeoutSeconds`, default 1800; the whole process tree is killed). Engine output goes to a log file, not a pipe, so a program the engine leaves running cannot hold the run; engines must still wait for the programs they start. Each clip gets a folder named after its full file name, holding the engine output, a `work` folder, `engine.log` and `result.json` (status, exit code, timeout, run time, output hash, last 20 log lines). After each clip the original is hashed again; if an engine changed it, that clip is marked `input_changed`, the run stops and exits 2. Otherwise the run exits 1 if any clip failed; one failure does not stop the others. `run.json` is written even when the run stops early.
+
+```powershell
+pwsh -NoProfile -File ./spikes/stabilization-benchmark/run-benchmark.ps1 `
+  -SettingsPath ./spikes/stabilization-benchmark/settings/copy-baseline.json `
+  -OutputDirectory 'C:/benchmark-runs/copy-01' -FfmpegPath 'C:/verified-tools/ffmpeg.exe'
+```
+
+An engine is `engines/<name>.ps1`. It takes `-InputPath`, `-OutputPath`, `-SettingsPath`, `-WorkDirectory` and `-FfmpegPath`, and exits 0 after writing `-OutputPath`. A settings file is JSON with `engine` and `name`; the engine reads its own options from it. Outputs are MP4 unless the settings say `"output_extension": "same"`. `engines/copy.ps1` copies the input unchanged and is the no-stabilization reference.
+
+`make-synthetic-clips.ps1` makes two test clips in a new folder: `shaken-still.mp4` (one still image panned along a fixed sine path, 4 s) and `hard-cut.mp4` (two different shaken stills joined by a cut at 2.0 s). Point `KUAIDE_CLIPS_DIR` at that folder and run `write-clip-manifest.ps1` to list them.
+
+Check: `pwsh -NoProfile -File ./spikes/stabilization-benchmark/test-run-benchmark.ps1 -FfmpegPath <ffmpeg.exe>`.
+
+Measuring crop and leftover shake is WP 1A.2.

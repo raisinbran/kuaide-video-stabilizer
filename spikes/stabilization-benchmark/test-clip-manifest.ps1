@@ -43,10 +43,14 @@ try {
     $hashBefore = (Get-FileHash -LiteralPath $manifestPath).Hash
     $result = Invoke-Manifest $output.FullName
     Assert-True ($result.exit_code -ne 0 -and (Get-FileHash -LiteralPath $manifestPath).Hash -eq $hashBefore) 'Existing output was replaced.'
-    foreach ($directory in @($originals.FullName, $PSScriptRoot)) {
-        $result = Invoke-Manifest $directory
-        Assert-True ($result.exit_code -ne 0 -and -not (Test-Path (Join-Path $directory 'clips.manifest.json'))) 'Protected directory received a report.'
-    }
+    $result = Invoke-Manifest $originals.FullName
+    Assert-True ($result.exit_code -ne 0 -and -not (Test-Path (Join-Path $originals.FullName 'clips.manifest.json'))) 'The clips directory received a report.'
+    # The repo folder holds the committed manifest; a refused run must leave it as it was.
+    $committed = Join-Path $PSScriptRoot 'clips.manifest.json'
+    $committedHash = if (Test-Path -LiteralPath $committed) { (Get-FileHash -LiteralPath $committed).Hash } else { $null }
+    $result = Invoke-Manifest $PSScriptRoot
+    $afterHash = if (Test-Path -LiteralPath $committed) { (Get-FileHash -LiteralPath $committed).Hash } else { $null }
+    Assert-True ($result.exit_code -ne 0 -and $afterHash -eq $committedHash) 'The repository folder received or changed a report.'
     Write-Output 'PASS output guards preserve reports and source directories'
 
     $env:KUAIDE_CLIPS_DIR = ''
