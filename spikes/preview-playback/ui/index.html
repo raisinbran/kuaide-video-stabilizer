@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Kuaide preview spike</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 16px; background: #111; color: #eee; }
+    input { width: 60%; }
+    video { display: block; width: 100%; max-height: 70vh; margin: 12px 0; background: #000; }
+    pre { white-space: pre-wrap; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <label>Video file <input id="path" placeholder="C:\path\to\video.mp4"></label>
+  <button id="protocol">Play by custom protocol</button>
+  <button id="http">Play by local server</button>
+  <video id="video" controls muted></video>
+  <pre id="log"></pre>
+  <script src="main.js"></script>
+</body>
+</html>
