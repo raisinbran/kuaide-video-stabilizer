@@ -1,14 +1,14 @@
 # Status
 
-Last updated: 2026-10-29 15:05 PT by Codex.
+Last updated: 2026-10-29 15:16 PT by Codex.
 
 ## Current position
 
 - Phase 0 (repository setup) is complete. The GitHub repo is renamed to `kuaide-video-stabilizer`. No app code yet.
 - Phase 1 is approved, as recorded on `origin/docs/phase-1-start`. No source implementation has started.
-- The reviewed plans on `feat/wp-1a-stabilization-benchmark` (`e1d7d4d`), `feat/wp-1b-preview-playback` (`f63b6e6`), and `feat/wp-1c-media-capabilities` (`3be84fb`) are absent from this checkout and GitHub. They have not been recovered. A bounded replacement WP 1C plan is being prepared for fresh independent review, following the owner's instruction to proceed.
-- The local checkout is on `docs/phase-1-recovery`, based on `4dcb02c`. Git metadata writes fail in the sandbox but branch creation succeeded with approved elevated execution. No push, PR or merge is authorized.
-- Account allowance was read successfully through `get_usage_limits` on 2026-10-29 at about 15:04 PT: 93% remains in the five-hour window and 71% in the weekly window. These are point-in-time readings; recheck at each stable point. The owner's 5%-or-below stop-and-handover rule applies immediately.
+- The reviewed plans on `feat/wp-1a-stabilization-benchmark` (`e1d7d4d`), `feat/wp-1b-preview-playback` (`f63b6e6`), and `feat/wp-1c-media-capabilities` (`3be84fb`) are absent from this checkout and GitHub. They have not been recovered. Replacement WP 1C-R1 is implemented and independently approved. Its offline checks passed twice. A separate bounded WP 1A manifest plan is being prepared for independent review.
+- Recovery documentation is committed at `9f2c01f` on `docs/phase-1-recovery`. WP 1C-R1 lives on `feat/wp-1c-build-inventory`, based on that commit; its reviewed source, plan and checks are being committed locally. Elevated Git execution resolves metadata write restrictions. No push, PR or merge is authorized.
+- Account allowance was read successfully through `get_usage_limits` on 2026-10-29 at about 15:15 PT: 79% remains in the five-hour window and 69% in the weekly window. These are point-in-time readings; recheck at each stable point. The owner's 5%-or-below stop-and-handover rule applies immediately.
 
 ## Machines
 
@@ -59,3 +59,8 @@ Last updated: 2026-10-29 15:05 PT by Codex.
 
 - `dev-plan/handover/2026-10-29-phase-1-planning.md` (copied from the published coordination branch).
 - `dev-plan/handover/2026-10-29-recovery-and-allowance.md` (current local recovery record).
+
+## Verification and next work
+
+- WP 1C-R1: `spikes/media-capabilities/test-build-inventory.ps1` passed all four behavior groups in the actual checkout and in an independent rerun. Tests use trusted child-process fixtures, not FFmpeg. No real binaries, encoders, GPU, macOS, media or license applicability have been validated.
+- Next: independently review and implement the bounded WP 1A manifest replacement; then acquire verified FFmpeg builds under a separate plan and run real build/hardware evidence when prerequisites are available.
