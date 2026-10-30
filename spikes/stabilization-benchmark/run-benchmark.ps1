@@ -4,8 +4,9 @@
 #
 # An engine is a script `<EngineDirectory>/<engine>.ps1` that accepts
 # -InputPath, -OutputPath, -SettingsPath, -WorkDirectory and -FfmpegPath, and
-# exits 0 after writing OutputPath. The settings file is JSON with at least
-# `engine` and `name`; the engine reads the rest itself.
+# exits 0 after writing OutputPath. It must wait for any program it starts.
+# The settings file is JSON with at least `engine` and `name`; the engine reads
+# the rest itself.
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)][string]$SettingsPath,
@@ -18,30 +19,33 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-function Get-Tail([string]$Text) {
-    $lines = @($Text -split "`r?`n" | Where-Object { $_ })
-    return ($lines | Select-Object -Last 20) -join "`n"
+function Test-Inside([string]$Path, [string]$Directory) {
+    $prefix = [IO.Path]::GetFullPath($Directory).TrimEnd('\', '/') + [IO.Path]::DirectorySeparatorChar
+    return ($Path.TrimEnd('\', '/') + [IO.Path]::DirectorySeparatorChar).StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase)
 }
 
-# Runs one engine in its own pwsh process; kills the whole process tree on timeout.
+function Test-ClipUnchanged($Entry) {
+    $path = Join-Path $clips $Entry.file_name
+    return (Test-Path -LiteralPath $path -PathType Leaf) -and
+        (Get-Item -LiteralPath $path -Force).Length -eq $Entry.size_bytes -and
+        (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant() -eq $Entry.sha256
+}
+
+# Runs one engine through invoke-engine.ps1 in its own process. Output goes to
+# a log file, so a program the engine leaves running cannot hold the harness;
+# on timeout the whole process tree is killed.
 function Invoke-Engine([string[]]$Arguments, [string]$WorkDirectory) {
     $start = [Diagnostics.ProcessStartInfo]::new((Get-Process -Id $PID).Path)
-    foreach ($argument in @('-NoProfile', '-NonInteractive', '-File') + $Arguments) { $start.ArgumentList.Add($argument) }
+    foreach ($argument in @('-NoProfile', '-NonInteractive', '-File', (Join-Path $PSScriptRoot 'invoke-engine.ps1')) + $Arguments) { $start.ArgumentList.Add($argument) }
     $start.WorkingDirectory = $WorkDirectory
     $start.UseShellExecute = $false
-    $start.RedirectStandardOutput = $true
-    $start.RedirectStandardError = $true
+    $start.CreateNoWindow = $true
+    $watch = [Diagnostics.Stopwatch]::StartNew()
     $process = [Diagnostics.Process]::Start($start)
     try {
-        $stdout = $process.StandardOutput.ReadToEndAsync()
-        $stderr = $process.StandardError.ReadToEndAsync()
-        $watch = [Diagnostics.Stopwatch]::StartNew()
         $timedOut = -not $process.WaitForExit($TimeoutSeconds * 1000)
         if ($timedOut) { $process.Kill($true); $process.WaitForExit() }
-        return [ordered]@{
-            exit_code = $process.ExitCode; timed_out = $timedOut; elapsed_ms = $watch.ElapsedMilliseconds
-            stdout_tail = Get-Tail $stdout.GetAwaiter().GetResult(); stderr_tail = Get-Tail $stderr.GetAwaiter().GetResult()
-        }
+        return [ordered]@{ exit_code = $process.ExitCode; timed_out = $timedOut; elapsed_ms = $watch.ElapsedMilliseconds }
     } finally { $process.Dispose() }
 }
 
@@ -66,47 +70,59 @@ if (-not (Test-Path -LiteralPath $engine -PathType Leaf)) { throw "No engine scr
 
 $output = $PSCmdlet.GetUnresolvedProviderPathFromPSPath($OutputDirectory)
 if (Test-Path -LiteralPath $output) { throw 'OutputDirectory must not exist; choose a new folder outside the repository.' }
-$repo = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..')).TrimEnd('\', '/') + [IO.Path]::DirectorySeparatorChar
-if (($output + [IO.Path]::DirectorySeparatorChar).StartsWith($repo, [StringComparison]::OrdinalIgnoreCase)) { throw 'Output must be outside the repository.' }
+if (Test-Inside $output (Join-Path $PSScriptRoot '../..')) { throw 'Output must be outside the repository.' }
+if (Test-Inside $output $clips) { throw 'Output must be outside the clips directory.' }
 
-# Check every clip before running anything, so a wrong folder fails fast.
+# Check every clip and every output folder name before running anything.
 $manifest = Get-Content -LiteralPath $ManifestPath -Raw | ConvertFrom-Json
+$folders = @{}
 foreach ($entry in $manifest.files) {
-    $path = Join-Path $clips $entry.file_name
-    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "Clip missing: $($entry.file_name)" }
-    if ((Get-Item -LiteralPath $path -Force).Length -ne $entry.size_bytes -or
-        (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant() -ne $entry.sha256) {
-        throw "Clip differs from the manifest: $($entry.file_name)"
-    }
+    if (-not (Test-Path -LiteralPath (Join-Path $clips $entry.file_name) -PathType Leaf)) { throw "Clip missing: $($entry.file_name)" }
+    if (-not (Test-ClipUnchanged $entry)) { throw "Clip differs from the manifest: $($entry.file_name)" }
+    # The full name, extension included: clip.mp4 and clip.webm need separate folders.
+    $folder = $entry.file_name -replace '[^A-Za-z0-9._-]', '_'
+    if ($folders.ContainsKey($folder.ToLowerInvariant())) { throw "Two clips map to the same output folder: $($entry.file_name)" }
+    $folders[$folder.ToLowerInvariant()] = $folder
 }
 
 [IO.Directory]::CreateDirectory($output) | Out-Null
-$results = foreach ($entry in $manifest.files) {
-    # The full name, extension included: clip.mp4 and clip.webm need separate folders.
-    $clipDirectory = Join-Path $output ($entry.file_name -replace '[^A-Za-z0-9._-]', '_')
-    if (Test-Path -LiteralPath $clipDirectory) { throw "Two clips map to the same output folder: $($entry.file_name)" }
-    $work = Join-Path $clipDirectory 'work'
-    [IO.Directory]::CreateDirectory($work) | Out-Null
-    # Engines write MP4 unless the settings say `"output_extension": "same"` (keep the input's).
-    $extension = if ($settings.PSObject.Properties['output_extension'] -and $settings.output_extension -eq 'same') { [IO.Path]::GetExtension($entry.file_name) } else { '.mp4' }
-    $outputPath = Join-Path $clipDirectory "output$extension"
-    $run = Invoke-Engine @($engine, '-InputPath', (Join-Path $clips $entry.file_name), '-OutputPath', $outputPath, '-SettingsPath', $settingsFile, '-WorkDirectory', $work, '-FfmpegPath', $FfmpegPath) $work
-    $produced = Test-Path -LiteralPath $outputPath -PathType Leaf
-    $result = [ordered]@{
-        file_name = $entry.file_name; input_sha256 = $entry.sha256
-        engine = $settings.engine; settings_name = $settings.name
-        status = if ($run.exit_code -eq 0 -and -not $run.timed_out -and $produced) { 'ok' } else { 'failed' }
-        output_sha256 = if ($produced) { (Get-FileHash -LiteralPath $outputPath -Algorithm SHA256).Hash.ToLowerInvariant() } else { $null }
-        output_bytes = if ($produced) { (Get-Item -LiteralPath $outputPath).Length } else { $null }
+$results = [Collections.Generic.List[object]]::new()
+$stopped = $null
+try {
+    foreach ($entry in $manifest.files) {
+        $clipDirectory = Join-Path $output ($entry.file_name -replace '[^A-Za-z0-9._-]', '_')
+        $work = Join-Path $clipDirectory 'work'
+        [IO.Directory]::CreateDirectory($work) | Out-Null
+        # Engines write MP4 unless the settings say `"output_extension": "same"` (keep the input's).
+        $extension = if ($settings.PSObject.Properties['output_extension'] -and $settings.output_extension -eq 'same') { [IO.Path]::GetExtension($entry.file_name) } else { '.mp4' }
+        $outputPath = Join-Path $clipDirectory "output$extension"
+        $logPath = Join-Path $clipDirectory 'engine.log'
+        $run = Invoke-Engine @('-EnginePath', $engine, '-LogPath', $logPath, '-InputPath', (Join-Path $clips $entry.file_name), '-OutputPath', $outputPath,
+            '-SettingsPath', $settingsFile, '-WorkDirectory', $work, '-FfmpegPath', $FfmpegPath) $work
+        $inputUnchanged = Test-ClipUnchanged $entry
+        $produced = Test-Path -LiteralPath $outputPath -PathType Leaf
+        $status = if (-not $inputUnchanged) { 'input_changed' } elseif ($run.exit_code -eq 0 -and -not $run.timed_out -and $produced) { 'ok' } else { 'failed' }
+        $log = if (Test-Path -LiteralPath $logPath) { @(Get-Content -LiteralPath $logPath -Tail 20) -join "`n" } else { '' }
+        $result = [ordered]@{
+            file_name = $entry.file_name; input_sha256 = $entry.sha256
+            engine = $settings.engine; settings_name = $settings.name; status = $status
+            exit_code = $run.exit_code; timed_out = $run.timed_out; elapsed_ms = $run.elapsed_ms
+            output_sha256 = if ($produced) { (Get-FileHash -LiteralPath $outputPath -Algorithm SHA256).Hash.ToLowerInvariant() } else { $null }
+            output_bytes = if ($produced) { (Get-Item -LiteralPath $outputPath).Length } else { $null }
+            log_tail = $log
+        }
+        Write-NewJson (Join-Path $clipDirectory 'result.json') $result
+        $results.Add($result)
+        # An engine that alters an original must not touch any more clips.
+        if (-not $inputUnchanged) { $stopped = "Engine changed the original clip: $($entry.file_name)"; break }
     }
-    foreach ($key in $run.Keys) { $result[$key] = $run[$key] }
-    Write-NewJson (Join-Path $clipDirectory 'result.json') $result
-    $result
+} finally {
+    $failed = @($results | Where-Object { $_.status -ne 'ok' }).Count
+    Write-NewJson (Join-Path $output 'run.json') ([ordered]@{
+        generated_at_utc = [DateTimeOffset]::UtcNow.ToString('o'); engine = $settings.engine; settings_name = $settings.name
+        settings = $settings; clips = $manifest.files.Count; completed = $results.Count; failed = $failed; stopped = $stopped; results = @($results)
+    })
 }
-$failed = @($results | Where-Object { $_.status -ne 'ok' }).Count
-Write-NewJson (Join-Path $output 'run.json') ([ordered]@{
-    generated_at_utc = [DateTimeOffset]::UtcNow.ToString('o'); engine = $settings.engine; settings_name = $settings.name
-    settings = $settings; clips = $manifest.files.Count; failed = $failed; results = @($results)
-})
 Write-Output (Join-Path $output 'run.json')
+if ($stopped) { Write-Error $stopped -ErrorAction Continue; exit 2 }
 if ($failed -gt 0) { exit 1 }

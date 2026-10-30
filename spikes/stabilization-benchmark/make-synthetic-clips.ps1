@@ -28,11 +28,14 @@ $work = Join-Path ([IO.Path]::GetTempPath()) ('kuaide-synthetic-' + [Guid]::NewG
 $encode = @('-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', '-pix_fmt', 'yuv420p')
 # 640x360 window moving inside an 800x460 still: up to +-40 px across, +-25 px down.
 $shake = "crop=640:360:'80+40*sin(2*PI*3*t)':'50+25*sin(2*PI*2*t+1)'"
-Invoke-Ffmpeg @('-f', 'lavfi', '-i', 'testsrc2=size=800x460', '-frames:v', '1', (Join-Path $work 'still-a.png'))
-Invoke-Ffmpeg @('-f', 'lavfi', '-i', 'mandelbrot=size=800x460', '-frames:v', '1', (Join-Path $work 'still-b.png'))
-Invoke-Ffmpeg (@('-loop', '1', '-framerate', '30', '-t', '4', '-i', (Join-Path $work 'still-a.png'), '-vf', $shake) + $encode + @((Join-Path $output 'shaken-still.mp4')))
-Invoke-Ffmpeg (@('-loop', '1', '-framerate', '30', '-t', '2', '-i', (Join-Path $work 'still-a.png'),
-    '-loop', '1', '-framerate', '30', '-t', '2', '-i', (Join-Path $work 'still-b.png'),
-    '-filter_complex', "[0:v]$shake[a];[1:v]$shake[b];[a][b]concat=n=2:v=1") + $encode + @((Join-Path $output 'hard-cut.mp4')))
-Remove-Item -LiteralPath $work -Recurse
+try {
+    Invoke-Ffmpeg @('-f', 'lavfi', '-i', 'testsrc2=size=800x460', '-frames:v', '1', (Join-Path $work 'still-a.png'))
+    Invoke-Ffmpeg @('-f', 'lavfi', '-i', 'mandelbrot=size=800x460', '-frames:v', '1', (Join-Path $work 'still-b.png'))
+    Invoke-Ffmpeg (@('-loop', '1', '-framerate', '30', '-t', '4', '-i', (Join-Path $work 'still-a.png'), '-vf', $shake) + $encode + @((Join-Path $output 'shaken-still.mp4')))
+    Invoke-Ffmpeg (@('-loop', '1', '-framerate', '30', '-t', '2', '-i', (Join-Path $work 'still-a.png'),
+        '-loop', '1', '-framerate', '30', '-t', '2', '-i', (Join-Path $work 'still-b.png'),
+        '-filter_complex', "[0:v]$shake[a];[1:v]$shake[b];[a][b]concat=n=2:v=1") + $encode + @((Join-Path $output 'hard-cut.mp4')))
+} finally {
+    Remove-Item -LiteralPath $work -Recurse -ErrorAction SilentlyContinue
+}
 Get-ChildItem -LiteralPath $output | ForEach-Object FullName

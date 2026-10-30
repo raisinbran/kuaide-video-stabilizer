@@ -50,7 +50,9 @@ try {
     $existing = Invoke-Harness $baseline $run
     $inside = Join-Path $PSScriptRoot 'harness-output-must-not-exist'
     $insideRun = Invoke-Harness $baseline $inside
-    Assert-True ($existing.exit_code -ne 0 -and $insideRun.exit_code -ne 0 -and -not (Test-Path -LiteralPath $inside)) 'An existing or in-repo output folder was accepted.'
+    $inClips = Invoke-Harness $baseline (Join-Path $clips 'outputs')
+    Assert-True ($existing.exit_code -ne 0 -and $insideRun.exit_code -ne 0 -and -not (Test-Path -LiteralPath $inside) -and
+        $inClips.exit_code -ne 0 -and -not (Test-Path (Join-Path $clips 'outputs'))) 'An existing, in-repo or in-clips output folder was accepted.'
     [IO.File]::AppendAllText((Join-Path $clips 'hard-cut.mp4'), 'x')
     $changed = Invoke-Harness $baseline (Join-Path $work 'run-changed')
     Assert-True ($changed.exit_code -ne 0 -and $changed.messages -match 'differs from the manifest' -and -not (Test-Path (Join-Path $work 'run-changed'))) 'A changed clip was run.'
@@ -63,20 +65,44 @@ try {
     Copy-Item -LiteralPath (Join-Path $clips 'shaken-still.mp4') -Destination (Join-Path $clips 'shaken-still.mov')
     $env:KUAIDE_CLIPS_DIR = $clips
     $engines = (New-Item -ItemType Directory -Path (Join-Path $work 'engines')).FullName
-    Set-Content -LiteralPath (Join-Path $engines 'fail.ps1') -Value 'param($InputPath, $OutputPath, $SettingsPath, $WorkDirectory, $FfmpegPath); Write-Error "engine broke"; exit 3'
-    Set-Content -LiteralPath (Join-Path $engines 'hang.ps1') -Value 'param($InputPath, $OutputPath, $SettingsPath, $WorkDirectory, $FfmpegPath); Start-Sleep -Seconds 60'
-    foreach ($name in @('fail', 'hang')) {
+    $engineParams = 'param($InputPath, $OutputPath, $SettingsPath, $WorkDirectory, $FfmpegPath)'
+    $fixtures = @{
+        fail = 'Write-Error "engine broke"; exit 3'
+        hang = 'Start-Sleep -Seconds 60'
+        # Starts a detached program that outlives the engine; the harness must not wait for it.
+        orphan = "Start-Process -FilePath '$pwsh' -ArgumentList '-NoProfile', '-Command', 'Start-Sleep 30' -WindowStyle Hidden; Copy-Item -LiteralPath `$InputPath -Destination `$OutputPath"
+        tamper = 'Copy-Item -LiteralPath $InputPath -Destination $OutputPath; [IO.File]::AppendAllText($InputPath, "x")'
+    }
+    foreach ($name in $fixtures.Keys) {
+        Set-Content -LiteralPath (Join-Path $engines "$name.ps1") -Value "$engineParams; $($fixtures[$name])"
         Set-Content -LiteralPath (Join-Path $work "$name.json") -Value (@{ engine = $name; name = 'fixture' } | ConvertTo-Json)
     }
     $failRun = Join-Path $work 'run-fail'
     $failed = Invoke-Harness (Join-Path $work 'fail.json') $failRun @('-EngineDirectory', $engines)
     $failReport = Get-Content -LiteralPath (Join-Path $failRun 'run.json') -Raw | ConvertFrom-Json
-    Assert-True ($failed.exit_code -eq 1 -and $failReport.failed -eq 3 -and @($failReport.results | Where-Object { $_.exit_code -eq 3 -and $_.stderr_tail -match 'engine broke' }).Count -eq 3) 'A failing engine was not recorded for every clip.'
+    Assert-True ($failed.exit_code -eq 1 -and $failReport.failed -eq 3 -and @($failReport.results | Where-Object { $_.exit_code -eq 3 -and $_.log_tail -match 'engine broke' }).Count -eq 3) 'A failing engine was not recorded for every clip.'
     $hangRun = Join-Path $work 'run-hang'
     $hung = Invoke-Harness (Join-Path $work 'hang.json') $hangRun @('-EngineDirectory', $engines, '-TimeoutSeconds', '3')
     $hangReport = Get-Content -LiteralPath (Join-Path $hangRun 'run.json') -Raw | ConvertFrom-Json
     Assert-True ($hung.exit_code -eq 1 -and @($hangReport.results | Where-Object { $_.timed_out -and $_.status -eq 'failed' }).Count -eq 3) 'A hung engine was not stopped and recorded.'
-    Write-Output 'PASS failed and hung engines are recorded per clip and the run exits 1'
+    $watch = [Diagnostics.Stopwatch]::StartNew()
+    $orphaned = Invoke-Harness (Join-Path $work 'orphan.json') (Join-Path $work 'run-orphan') @('-EngineDirectory', $engines)
+    Assert-True ($orphaned.exit_code -eq 0 -and $watch.Elapsed.TotalSeconds -lt 20) "A program left running by the engine held the harness ($([int]$watch.Elapsed.TotalSeconds) s)."
+    Write-Output 'PASS failed, hung and orphaning engines are recorded per clip without holding the run'
+
+    $tamperRun = Join-Path $work 'run-tamper'
+    $tampered = Invoke-Harness (Join-Path $work 'tamper.json') $tamperRun @('-EngineDirectory', $engines)
+    $tamperReport = Get-Content -LiteralPath (Join-Path $tamperRun 'run.json') -Raw | ConvertFrom-Json
+    Assert-True ($tampered.exit_code -eq 2 -and $tamperReport.completed -eq 1 -and $tamperReport.results[0].status -eq 'input_changed' -and $tamperReport.stopped) 'An engine that changed an original was not caught and stopped.'
+    Write-Output 'PASS an engine that changes an original clip stops the run'
+
+    $collide = Join-Path $work 'collide.manifest.json'
+    $entry = (Get-Content -LiteralPath (Join-Path $work 'manifest/clips.manifest.json') -Raw | ConvertFrom-Json).files | Where-Object file_name -eq 'shaken-still.mp4'
+    foreach ($name in @('a b.mp4', 'a_b.mp4')) { Copy-Item -LiteralPath (Join-Path $clips 'shaken-still.mp4') -Destination (Join-Path $clips $name) }
+    @{ files = @(foreach ($name in @('a b.mp4', 'a_b.mp4')) { [ordered]@{ file_name = $name; size_bytes = $entry.size_bytes; sha256 = $entry.sha256 } }) } | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $collide
+    $messages = & $pwsh -NoProfile -NonInteractive -File $harness -SettingsPath $baseline -OutputDirectory (Join-Path $work 'run-collide') -ManifestPath $collide 2>&1
+    Assert-True ($LASTEXITCODE -ne 0 -and ($messages -join "`n") -match 'same output folder' -and -not (Test-Path (Join-Path $work 'run-collide'))) 'Colliding folder names were not refused before running.'
+    Write-Output 'PASS clips whose folder names collide are refused before any engine starts'
     Write-Output "Scratch results: $work"
 } finally {
     $env:KUAIDE_CLIPS_DIR = $prior
