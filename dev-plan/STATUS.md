@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-10-29 15:32 PT by Codex.
+Last updated: 2026-10-29 15:59 PT by Codex.
 
 ## Current position
 
@@ -8,15 +8,17 @@ Last updated: 2026-10-29 15:32 PT by Codex.
 - Phase 1 is approved. Bounded replacement spikes are implemented; no app UI or core implementation has started.
 - The original plans at `e1d7d4d`, `f63b6e6`, and `3be84fb` remain unavailable. Replacements are explicitly labeled; compare any recovered plans before combining work.
 - Recovery rules and documents: `docs/phase-1-recovery` at `9f2c01f`. WP 1C-R1 collector: `feat/wp-1c-build-inventory` at `dbe42b5`. WP 1A-R1 manifest: `feat/wp-1a-clip-manifest` at `957089c`, with status correction `2daa176`. Both packages passed independent review and their offline suites.
-- Current branch `feat/wp-1c-windows-build` starts from `dbe42b5`. Its reviewed WP 1C-R2 script acquired and checksum-verified one Windows candidate. All six real collector commands passed, and observed build evidence is recorded in `spikes/media-capabilities/evidence/2026-10-29-windows-candidate.md`. The source/test review and factual evidence review both approved it.
-- Elevated Git execution resolves metadata write restrictions. Branches are local only. No push, PR or merge is authorized.
-- Account allowance at about 15:31 PT: 49% remains in the five-hour window and 64% in the weekly window. These are point-in-time readings; recheck at each stable point. Stop and provide a handover at 5% or below in any applicable window.
+- WP 1C-R2 is committed at `a4dff44` on `feat/wp-1c-windows-build`, based on `dbe42b5`. The acquisition, real listing evidence, source and tests passed independent review.
+- WP 1C-R3 is committed at `bbbb76f` on the current branch, `feat/wp-1c-software-smoke`, based on `a4dff44`. It passed real synthetic encoding/filter checks and independent source/evidence review: nine zero-exit commands and three 320x180, 30-frame, one-second outputs. See `spikes/media-capabilities/evidence/2026-10-29-software-smoke.md`. No original footage or hardware encoder has been tested.
+- The owner approved publishing the five completed branches. All five were published and their GitHub ref hashes verified against local commits on 2026-10-29. Elevated Git execution resolves metadata write restrictions. No PR or merge is authorized.
+- Account allowance at about 15:59 PT: 11% remains in the five-hour window and 58% in the weekly window. These are point-in-time readings; recheck at each stable point. Begin wrap-up at 5% remaining or earlier; the handover must be ready and work already stopped at a stable point before either the five-hour or weekly allowance reaches 1%.
 
 ## Machines
 
 | Machine | Details | Availability |
 |---|---|---|
-| Original Windows PC | Historic inventory: Intel Core i7-14700K, RTX 3080 + UHD 770, 32 GB RAM; Rust, Node.js, Python, Git and Resolve. Clips: `I:\My Drive\Agentic projects\kuaide-video-stabilizer_temp`. This session uses `C:\Users\bchen`; the original `C:\Users\brand` path and clips drive are absent. Original hardware is not verified here. | Owner's temporary window: available until about 17:00 PT on 2026-10-29; asleep about 17:00-17:20 PT. Stable-stop target: 16:30 PT. Availability after 17:20 awaits owner details. No push permission is implied. |
+| Current Windows host | Verified by CIM: Dell Precision 7760, Xeon W-11855M, Intel UHD + RTX A3000 Laptop GPU, 67,865,284,608 bytes RAM, SSSTC 1 TB NVMe. Session path `C:\Users\bchen`; original clips drive is absent. Bundled Git, Python and PowerShell work by absolute paths. Pinned FFmpeg candidate is local and ignored. | Owner's temporary window: available until about 17:00 PT on 2026-10-29; asleep about 17:00-17:20 PT. Stable-stop target: 16:30 PT. Availability after 17:20 awaits owner details. No push permission is implied. |
+| Original Windows reference PC | Historic inventory: i7-14700K, RTX 3080 + UHD 770, 32 GB RAM; Rust, Node.js, Python, Git and Resolve. Clips expected at `I:\My Drive\Agentic projects\kuaide-video-stabilizer_temp`. This machine and its clips are not accessible here. | Unknown; current host results do not satisfy its evidence requirement. |
 | Apple Silicon Mac | Not checked yet | Unknown |
 
 ## Owner tasks
@@ -40,13 +42,13 @@ Last updated: 2026-10-29 15:32 PT by Codex.
 | 2026-10-28 | Agents do tasks by default; the owner gets a task only when it is much cheaper for a person (see AGENTS.md). |
 | 2026-10-28 | Owner approved the start of Phase 1. Long tasks still require a separate Gate 2 approval. |
 | 2026-10-29 | Generated lockfiles do not count toward the 700-line PR size limit, but they must be committed and reviewed. |
-| 2026-10-29 | At 5% or below remaining Codex or Claude Code allowance, stop at a stable point and provide a handover. This applies immediately and to all future tasks in this plan. |
+| 2026-10-29 | All plans and future sessions: by 1% remaining in either the five-hour or weekly allowance, a handover must already be ready and work already stopped at a stable point. Keep 5% as the early wrap-up trigger, or start earlier when needed. |
 
 ## Standing permissions
 
-- Mandatory allowance rule, effective immediately for all future plan tasks: at 5% or below remaining Codex or Claude Code allowance, stop at the next stable point and provide the owner a handover document. See AGENTS.md Gate 3.
+- Mandatory allowance deadline for all plans and future sessions: by 1% remaining in either limit, the handover is ready and the agent has already stopped at a stable point. Begin wrap-up at 5% or earlier. See AGENTS.md Gate 3. The same rule is saved in local user-wide Codex and Claude Code instruction files on this computer.
 - Long-task permissions (Gate 2): none.
-- Push / PR permissions: none.
+- One-time owner approval: publish the five completed branches, including the completion status/handover record. All five are now published. No standing permission for further work, PRs or merges is implied.
 - Installing DaVinci Resolve (free): allowed. The download form asks for personal details, and accepting the license is the owner's call, so the owner fills in that form (about 2 minutes) unless they say otherwise at the time.
 
 ## Open questions for the owner
@@ -61,11 +63,18 @@ Last updated: 2026-10-29 15:32 PT by Codex.
 
 - `dev-plan/handover/2026-10-29-phase-1-planning.md` (copied from the published coordination branch).
 - `dev-plan/handover/2026-10-29-recovery-and-allowance.md` (current local recovery record).
+- `dev-plan/handover/2026-10-29-phase-1-spikes.md` (latest continuation instructions and branch map).
 
 ## Verification and next work
 
 - WP 1C-R1: all four offline behavior groups passed in the checkout and in independent review. The collector subsequently passed all six listing/identity commands against real verified FFmpeg and ffprobe binaries.
 - WP 1A-R1: all three fixture behavior groups passed in the checkout and independently. A scratch mutation adding an absolute source path was rejected. No original clips were accessed. This source is on its separate named branch, not merged here.
-- WP 1C-R2: checksum-rejection check passed independently; actual download, pinned hash/size check and extraction succeeded. Exact binary/license hashes, versions and full reported configuration are recorded in evidence. Required stabilization filters, x264/x265 and NVENC/QSV/AMF encoder names are listed. No encode, filter execution or GPU validation has run yet.
+- WP 1C-R2: checksum-rejection check passed independently; actual download, pinned hash/size check and extraction succeeded. Exact binary/license hashes, versions and full reported configuration are recorded in evidence. Required stabilization filters, x264/x265 and NVENC/QSV/AMF encoder names are listed.
+- WP 1C-R3: x264, x265 and both libvidstab passes executed successfully on synthetic data. All three outputs passed ffprobe checks; independent review reran the smoke and confirmed an existing-output retry preserves the report. Timings are illustrative, not representative benchmarks. No GPU encoding, original-media probing or quality scoring is established.
 - Binaries and retained download are ignored under `app/third-party/bin/`; raw path-containing inventory is in system temp. No binaries or raw local report are staged. The extracted GPL v3 license file is observed; full source correspondence and dependency license applicability remain unverified.
-- Next: bounded runtime encoder/filter checks with synthetic inputs, plus source/dependency provenance review. WP 1B preview work, actual footage probing, Windows reference-machine tests and macOS evidence remain open. No Phase 1 engine or preview decision is made.
+- Next: recover or freshly plan WP 1B preview playback and verify its build prerequisites; continue source/dependency provenance review; run hardware/media tests when the original footage/reference machines are available. No Phase 1 engine or preview decision is made. Review integration bases before pushing or opening PRs: the WP 1C branches are stacked, while WP 1A is a separate sibling of the recovery branch.
+
+## GitHub connection and publication
+
+- Codex GitHub connector verified as `raisinbran`; repository read/write access works. GitHub Desktop also published using its existing sign-in. Command-line Git Credential Manager has no usable sign-in and cannot push noninteractively; do not confuse that with the healthy Codex connector.
+- Verified remote heads before this publication-record commit: recovery `9f2c01f`, clip manifest `2daa176`, build inventory `dbe42b5`, Windows build `a4dff44`, software smoke `9079706`. This final record is a following documentation commit on the software-smoke branch; verify its remote HEAD after publication.
