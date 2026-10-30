@@ -43,14 +43,16 @@ An engine is `engines/<name>.ps1`. It takes `-InputPath`, `-OutputPath`, `-Setti
 Check: `pwsh -NoProfile -File ./spikes/stabilization-benchmark/test-run-benchmark.ps1 -FfmpegPath <ffmpeg.exe>`.
 
 Measuring crop and leftover shake is WP 1A.2.
+
 ## libvidstab engine and measurement (WP 1A.2)
 
-`engines/libvidstab.ps1` runs FFmpeg's two-pass libvidstab: `vidstabdetect`, then `vidstabtransform` and a libx264 encode, copying audio. Its settings files hold `detect` and `transform` option strings, `preset` and `crf`; option strings that name files or add filters are refused. `settings/libvidstab-auto.json` uses the defaults; `settings/libvidstab-tuned.json` uses stronger detection and about 1 s of smoothing. Both keep black borders (`optzoom=0`) so the crop can be measured.
+`engines/libvidstab.ps1` runs FFmpeg's two-pass libvidstab: `vidstabdetect`, then `vidstabtransform` and a libx264 encode, keeping the first audio track as AAC. Its settings files hold `detect` and `transform` option strings, `preset` and `crf`; option strings that name files or add filters are refused. `settings/libvidstab-auto.json` is near-default; `settings/libvidstab-tuned.json` uses stronger detection and about 1 s of smoothing. Both use the Gaussian camera path (`optalgo=gauss`; the default path needs a zoom budget) and keep black borders (`optzoom=0`) so the crop can be measured.
 
-`measure-run.ps1 -RunDirectory <run> -FfmpegPath <ffmpeg>` writes `metrics.json` into a finished run:
+`measure-run.ps1 -RunDirectory <run> -FfmpegPath <ffmpeg>` writes `metrics.json` into a finished run. Both the original and the output are measured in one analysis form: 30 fps, the central 70% of the frame, scaled to 640 px wide, 8-bit.
 
-- `shake_px`: libvidstab's frame-to-frame camera motion, minus a 15-frame moving average (intended motion such as a pan), as RMS pixels. Measured on the original and the output.
+- `shake_px`: libvidstab's frame-to-frame camera motion minus a 15-frame (0.5 s) moving average, as RMS analysis pixels. Frames where the original jumps (cuts, black frames) are dropped from both clips (`frames_dropped`).
 - `reduction`: output shake / original shake. 1 is unchanged; lower is steadier.
-- `crop_pct`: the share of the frame outside the area that is picture in every output frame (`cropdetect`). Dark frame edges also count as border, so it is an upper bound.
+- `frozen_output`: true when the output has over 1 s more frozen picture than the original; such a result is not a real reduction. An output whose frame count differs from the original's by more than 1% is refused.
+- `crop_pct`: the share of the frame outside the area that is picture in every output frame (`cropdetect`, black frames skipped, 99th-percentile edges). Dark frame edges count as border, so it is an upper bound. An engine that zooms to fill the frame shows 0 and must report its zoom.
 
-The shake measure uses libvidstab itself, so it may favor libvidstab over other engines; WP 1A.4 adds frame reviews. Check: `pwsh -NoProfile -File ./spikes/stabilization-benchmark/test-libvidstab.ps1 -FfmpegPath <ffmpeg.exe>`.
+Limits: the shake estimate uses libvidstab's own motion search, so it may favor libvidstab; blur is not detected. WP 1A.4 adds frame reviews. Check: `pwsh -NoProfile -File ./spikes/stabilization-benchmark/test-libvidstab.ps1 -FfmpegPath <ffmpeg.exe>`.
