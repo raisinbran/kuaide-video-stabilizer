@@ -1,0 +1,6 @@
+{
+  "engine": "copy",
+  "name": "baseline",
+  "output_extension": "same",
+  "description": "Unchanged input; the no-stabilization reference."
+}
