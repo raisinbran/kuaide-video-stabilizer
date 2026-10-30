@@ -53,9 +53,10 @@ Measuring crop and leftover shake is WP 1A.2.
 - `shake_px`: libvidstab's frame-to-frame translation estimate minus a 15-frame (0.5 s) moving average, as RMS analysis pixels. Large original-motion outliers are dropped from both clips (`frames_dropped`); those outliers do not prove cuts.
 - `reduction`: output shake / original shake. 1 is unchanged; lower is steadier.
 - `frozen_output`: true when the output has over 1 s more frozen picture than the original; such a result is not a real reduction. An output whose frame count differs from the original's by more than 1% is refused.
-- `crop_pct`: zero added crop only when current input and output SHA-256 hashes match. Otherwise it is `null`, with `crop_status=geometric_measurement_unavailable`. A geometric crop method is still needed for transformed outputs.
+- `crop_pct`: the share of the frame outside the largest rectangle of the frame's shape that is picture in every frame, for one fixed framing over the whole clip. It comes from the engine's `work/border-union.pgm` through `get-valid-crop.ps1` (`crop_status=geometric_mask`). Byte-identical copies are 0 (`unchanged_bytes`); an engine without that image gives null (`geometric_measurement_unavailable`). `observed_dark_edges_pct` is a diagnostic only.
+- `frame_change_ratio`: output / original mean frame-to-frame picture change, which needs no tracking. `shake_score_suspect` is true when shake rises by over 10% but picture change does not.
 - `observed_dark_edges_pct`: a diagnostic from `cropdetect`, with black frames skipped and 99th-percentile edges. Dark scenery produces false borders, and rotated black corners may be missed. This number is neither a crop score nor an upper bound; do not use it to rank engines.
 
-Reports carry `measurement_version=2`. Earlier reports used a 17-frame window despite labeling it 15 and reported the dark-edge diagnostic as crop. Rerun measurements before comparing versions.
+Reports carry `measurement_version=4`. Version 1 used a 17-frame window despite labeling it 15 and reported the dark-edge diagnostic as crop; version 2 had no crop for transformed outputs; version 3 had no frame-change check. Rerun measurements before comparing versions.
 
 Limits: the shake estimate uses libvidstab's own translation search, so it may favor libvidstab; rotation and blur are not scored. Dropped outliers do not prove cuts, and moving subjects or lights can affect tracking. WP 1A.4 adds frame reviews. Check: `pwsh -NoProfile -File ./spikes/stabilization-benchmark/test-libvidstab.ps1 -FfmpegPath <ffmpeg.exe>`.

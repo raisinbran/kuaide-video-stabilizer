@@ -10,6 +10,8 @@
 # 1/30 s, so clips and engines of any size and frame rate compare directly.
 # Large original-motion outliers are dropped from both; they do not prove cuts.
 # reduction is output shake / original shake (lower is steadier; 1 is unchanged).
+# frame_change_ratio is the same comparison for raw picture change, which needs no
+# tracking; shake_score_suspect marks clips where tracking says worse but it does not.
 # Frozen output would look perfectly steady, so frozen time is measured too and
 # a clip whose output freezes 1 s more than its original is flagged.
 # Crop: identical bytes prove zero added crop. Otherwise crop_pct comes from the
@@ -84,6 +86,15 @@ function Get-FrozenSeconds([string]$Path) {
     return [Math]::Round($total, 2)
 }
 
+# Mean frame-to-frame picture change, which needs no motion tracking. Scene
+# changes (lights, moving people) count too, so it checks shake_px, not replaces it.
+function Get-FrameChange([string]$Path) {
+    $lines = & $FfmpegPath -v error -nostdin -i $Path -vf "$Analysis,tblend=all_mode=difference,signalstats,metadata=print:key=lavfi.signalstats.YAVG:file=-" -an -f null -
+    if ($LASTEXITCODE -ne 0) { throw "Frame-change measure failed: $Path" }
+    $values = @($lines | Select-String -Pattern 'YAVG=([0-9.]+)' | ForEach-Object { [double]::Parse($_.Matches[0].Groups[1].Value, [Globalization.CultureInfo]::InvariantCulture) })
+    return [Math]::Round(($values | Measure-Object -Average).Average, 3)
+}
+
 # Compares an output with its original on the same frames.
 function Measure-Pair([string]$Original, [string]$Output, [string]$Work) {
     $before = @(Get-Motion $Original (Join-Path $Work 'in'))
@@ -102,12 +113,18 @@ function Measure-Pair([string]$Original, [string]$Output, [string]$Work) {
     $keep = [bool[]]@($inResidual | ForEach-Object { $_.shake -le $limit })
     $inSummary = Get-Summary $inResidual $keep
     $outSummary = Get-Summary $outResidual $keep
+    $changeIn = Get-FrameChange $Original
+    $changeOut = Get-FrameChange $Output
     $frozenIn = Get-FrozenSeconds $Original
     $frozenOut = Get-FrozenSeconds $Output
     return [ordered]@{
         frames = $count; frames_dropped = @($keep | Where-Object { -not $_ }).Count
         original = $inSummary; output = $outSummary
         reduction = if ($inSummary.shake_px -gt 0) { [Math]::Round($outSummary.shake_px / $inSummary.shake_px, 3) } else { $null }
+        frame_change_original = $changeIn; frame_change_output = $changeOut
+        frame_change_ratio = if ($changeIn -gt 0) { [Math]::Round($changeOut / $changeIn, 3) } else { $null }
+        # True when tracking says worse but the picture does not: the shake score is suspect.
+        shake_score_suspect = $inSummary.shake_px -gt 0 -and ($outSummary.shake_px / $inSummary.shake_px) -gt 1.1 -and $changeIn -gt 0 -and ($changeOut / $changeIn) -le 1.0
         frozen_seconds_original = $frozenIn; frozen_seconds_output = $frozenOut
         frozen_output = ($frozenOut - $frozenIn) -gt 1.0
     }
@@ -165,7 +182,7 @@ try {
 } finally { Remove-Item -LiteralPath $scratch -Recurse -Force -ErrorAction SilentlyContinue }
 $file = [IO.File]::Open($metricsPath, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None)
 try {
-    $bytes = [Text.UTF8Encoding]::new($false).GetBytes((@{ measurement_version = 3; window_frames = $Window; analysis = $Analysis; clips = @($metrics) } | ConvertTo-Json -Depth 6) + [Environment]::NewLine)
+    $bytes = [Text.UTF8Encoding]::new($false).GetBytes((@{ measurement_version = 4; window_frames = $Window; analysis = $Analysis; clips = @($metrics) } | ConvertTo-Json -Depth 6) + [Environment]::NewLine)
     $file.Write($bytes, 0, $bytes.Length)
 } finally { $file.Dispose() }
 Write-Output $metricsPath

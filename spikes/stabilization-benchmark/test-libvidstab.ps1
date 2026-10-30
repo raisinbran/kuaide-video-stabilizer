@@ -39,11 +39,11 @@ try {
     Assert-True ($listed.exit_code -eq 0) $listed.messages
 
     $copy = Measure-Settings (Join-Path $PSScriptRoot 'settings/copy-baseline.json') 'copy'
-    Assert-True ([Math]::Abs($copy.reduction - 1) -lt 0.02 -and $copy.crop_pct -eq 0 -and $copy.crop_status -eq 'unchanged_bytes' -and $copy.original.shake_px -gt 10) "Copy baseline did not measure as unchanged: $($copy | ConvertTo-Json -Compress)"
+    Assert-True ([Math]::Abs($copy.reduction - 1) -lt 0.02 -and $copy.crop_pct -eq 0 -and $copy.crop_status -eq 'unchanged_bytes' -and $copy.frame_change_ratio -eq 1 -and -not $copy.shake_score_suspect -and $copy.original.shake_px -gt 10) "Copy baseline did not measure as unchanged: $($copy | ConvertTo-Json -Compress)"
     Write-Output 'PASS the unstabilized baseline measures as unchanged with no crop'
 
     $stabilized = Measure-Settings (Join-Path $PSScriptRoot 'settings/libvidstab-auto.json') 'auto'
-    Assert-True ($stabilized.reduction -lt 0.5 -and $stabilized.crop_status -eq 'geometric_mask' -and $stabilized.crop_pct -gt 2 -and $stabilized.crop_pct -lt 50) "libvidstab did not reduce shake with a measured crop: $($stabilized | ConvertTo-Json -Compress)"
+    Assert-True ($stabilized.reduction -lt 0.5 -and $stabilized.crop_status -eq 'geometric_mask' -and $stabilized.crop_pct -gt 2 -and $stabilized.crop_pct -lt 50 -and $stabilized.frame_change_ratio -lt 0.8) "libvidstab did not reduce shake with a measured crop: $($stabilized | ConvertTo-Json -Compress)"
     Write-Output "PASS libvidstab cuts synthetic shake to $([int]($stabilized.reduction * 100))% with $($stabilized.crop_pct)% crop"
 
     $unsafe = Join-Path $work 'unsafe.json'

@@ -1,10 +1,10 @@
 # Status
 
-Last updated: 2026-10-29 Pacific time by Codex (WP 1A.2 measurement continuation, after the handover dated 2026-10-30).
+Last updated: 2026-10-30 by Claude Code (WP 1A.2 crop method and concert investigation, after reviewing Codex's correction).
 
 ## Current position
 
-In plain words: Phase 1 is still gathering evidence. FFmpeg's stabilizer has run on five real clips and synthetic clips, and the preview test app exists. The measurement investigation found that dark scenery was being reported as crop and the shake window used 17 frames while claiming 15. The current correction separates the darkness diagnostic from crop and uses 15 frames. Geometric crop remains unmeasured for transformed outputs. No engine choice or Phase 1 approval follows from these results.
+In plain words: Phase 1 is still gathering evidence. FFmpeg's stabilizer has run on five real clips and computer-made clips, and the preview test app exists. Shake and crop can now both be measured. So far only one clip is truly shaky, so no stabilizer choice can be made yet. Gyroflow and DaVinci Resolve have not run.
 
 - Current branch: `feat/wp-1a-2-libvidstab`, resumed from `d2b016c`. The measurement correction passed the seven behavior groups in `test-libvidstab.ps1` and independent Codex review. Claude Code review is still required before a PR or merge. All 15 real clip/settings pairs were remeasured successfully with version 2; earlier reports remain preserved. Results and limits: `spikes/stabilization-benchmark/evidence/2026-10-29-measurement-correction.md`.
 - Frame inspection shows different renderings and edits in the two Caltrain files; the MP4 includes live-action footage near its end. They are not matched controls for diagnosing frame-rate effects.
@@ -12,7 +12,7 @@ In plain words: Phase 1 is still gathering evidence. FFmpeg's stabilizer has run
 
 | Phase 1 part | Done | Still to do |
 |---|---|---|
-| 1A Stabilization benchmark | Five-clip manifest, harness, synthetic fixtures and automatic/tuned libvidstab runs; corrected translation-shake measure | Establish geometric crop, investigate concert quality, add Gyroflow and Resolve, then score and compare |
+| 1A Stabilization benchmark | Five-clip list, safe harness, computer-made test clips, automatic and tuned libvidstab runs, shake, crop and picture-change measures | Add Gyroflow and Resolve, get handheld footage, then score and compare |
 | 1B Preview playback | A small test version of the app window (Tauri) that plays and skips through a 1080p video in two ways (WP 1B.1) | Measure how smoothly it plays and seeks on Windows and Mac, and test the WebGL color shader |
 | 1C Media tools | One exact Windows FFmpeg build, checked; it encodes video and reduces shake on a computer-made video; your three clips read (format, rotation, frame rate, color); Intel Quick Sync encoding works on this laptop | NVIDIA encoding (this FFmpeg needs a newer NVIDIA driver than the laptop has); a Mac FFmpeg build; gyro clips; choosing how to convert the available HDR/VFR phone clips to normal video; finishing the license check |
 | Decision record | Nothing | Write `dev-plan/decision-record.md` for your approval |
@@ -95,7 +95,7 @@ In plain words: Phase 1 is still gathering evidence. FFmpeg's stabilizer has run
 - WP 1C-R2: checksum-rejection check passed independently; actual download, pinned hash/size check and extraction succeeded. Exact binary/license hashes, versions and full reported configuration are recorded in evidence. Required stabilization filters, x264/x265 and NVENC/QSV/AMF encoder names are listed.
 - WP 1C-R3: x264, x265 and both libvidstab passes executed successfully on synthetic data. All three outputs passed ffprobe checks; independent review reran the smoke and confirmed an existing-output retry preserves the report. Timings are illustrative, not representative benchmarks. QA-R1 adds a measured shake check: on a synthetic shaken video the leftover motion fell from 20.67 to 1.88 (ratio 0.09, limit 0.25). No GPU encoding, original-media probing or quality scoring on real footage is established.
 - Binaries and retained download are ignored under `app/third-party/bin/`; raw path-containing inventory is in system temp. No binaries or raw local report are staged. The extracted GPL v3 license file is observed; full source correspondence and dependency license applicability remain unverified.
-- Next: WP 1A.2 (libvidstab and Gyroflow engines, crop and leftover-shake measurement), then 1A.3 Resolve and 1B.2. Owner clips for gyro, 4K and other cases are still needed for the engine choice; two HDR/VFR phone clips are now available. No Phase 1 engine or preview decision is made.
+- Next: fresh review of the crop method, merge WP 1A.2 libvidstab work, then Gyroflow (needs a gyro clip), 1A.3 Resolve and 1B.2. Results: `spikes/stabilization-benchmark/evidence/2026-10-30-crop-and-concert.md`. Owner clips for gyro, running, 4K and other cases are still needed for the engine choice. No Phase 1 engine or preview decision is made.
 
 ## GitHub connection and publication
 
