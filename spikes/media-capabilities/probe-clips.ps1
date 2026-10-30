@@ -32,12 +32,16 @@ function ConvertFrom-Rate([string]$Rate) {
 # arrive out of presentation order.
 function Get-FrameTiming([string]$Path) {
     $csv = Invoke-Probe @('-select_streams', 'v:0', '-show_entries', 'packet=pts_time', '-of', 'csv=p=0', $Path)
-    $times = @($csv -split "`n" | Where-Object { $_ -match '^[0-9.]+' } | ForEach-Object { [double]::Parse($_.Trim().TrimEnd(','), [Globalization.CultureInfo]::InvariantCulture) } | Sort-Object)
-    if ($times.Count -lt 3) { return [ordered]@{ frames = $times.Count; variable_frame_rate = $null } }
+    $lines = @($csv -split "`n" | ForEach-Object { $_.Trim().TrimEnd(',') } | Where-Object { $_ })
+    # Edit lists can give negative times; raw streams give N/A, which is counted, not read.
+    $times = @($lines | Where-Object { $_ -match '^-?[0-9.]+$' } | ForEach-Object { [double]::Parse($_, [Globalization.CultureInfo]::InvariantCulture) } | Sort-Object)
+    $untimed = $lines.Count - $times.Count
+    if ($times.Count -lt 3) { return [ordered]@{ frames = $times.Count; packets_without_time = $untimed; variable_frame_rate = $null } }
     $gaps = for ($i = 1; $i -lt $times.Count; $i++) { ($times[$i] - $times[$i - 1]) * 1000 }
     $stats = $gaps | Measure-Object -Minimum -Maximum -Average
     return [ordered]@{
         frames = $times.Count
+        packets_without_time = $untimed
         frame_gap_ms_min = [Math]::Round($stats.Minimum, 3)
         frame_gap_ms_max = [Math]::Round($stats.Maximum, 3)
         frame_gap_ms_mean = [Math]::Round($stats.Average, 3)
@@ -51,8 +55,10 @@ function Get-Rotation($Stream) {
         $rotation = Get-Property $side 'rotation'
         if ($null -ne $rotation) { return [int]$rotation }
     }
+    # The old `rotate` tag counts clockwise, the display matrix counterclockwise;
+    # report the display-matrix convention (an iPhone portrait clip is -90).
     $rotate = Get-Property (Get-Property $Stream 'tags') 'rotate'
-    if ($null -ne $rotate) { return [int]$rotate }
+    if ($null -ne $rotate) { return -[int]$rotate }
     return 0
 }
 
@@ -70,14 +76,17 @@ $results = foreach ($entry in $manifest.files) {
     if ($file.Length -ne $entry.size_bytes) { throw "Size differs from the manifest: $($entry.file_name)" }
     if ((Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant() -ne $entry.sha256) { throw "SHA-256 differs from the manifest: $($entry.file_name)" }
     $probe = Invoke-Probe @('-show_format', '-show_streams', '-of', 'json', $path) | ConvertFrom-Json
-    $video = @($probe.streams | Where-Object codec_type -eq 'video')[0]
+    $videoStreams = @($probe.streams | Where-Object codec_type -eq 'video')
+    if ($videoStreams.Count -eq 0) { throw "No video stream: $($entry.file_name)" }
+    $video = $videoStreams[0]
+    $duration = Get-Property $probe.format 'duration'
     $audio = @($probe.streams | Where-Object codec_type -eq 'audio')
     $transfer = Get-Property $video 'color_transfer'
     [ordered]@{
         file_name = $entry.file_name
         sha256 = $entry.sha256
         container = $probe.format.format_name
-        duration_s = [Math]::Round([double]::Parse($probe.format.duration, [Globalization.CultureInfo]::InvariantCulture), 3)
+        duration_s = if ($duration) { [Math]::Round([double]::Parse($duration, [Globalization.CultureInfo]::InvariantCulture), 3) } else { $null }
         video = [ordered]@{
             codec = $video.codec_name
             profile = Get-Property $video 'profile'

@@ -14,7 +14,7 @@ All three clips matched the size and SHA-256 in `spikes/stabilization-benchmark/
 
 Corrections to the roadmap: `IMG_0225.MOV` is H.264, not HEVC, and is recorded in portrait (stored landscape with a -90 degree display rotation). Both Caltrain files are 60 fps.
 
-"Steady" means the gap between frame timestamps varies by 2 ms or less. WebM stores whole milliseconds, so its 16/17 ms gaps are rounding. None of the three clips is HDR, has variable frame rate or carries gyro data, so these cases still need the owner's extra clips (STATUS.md "Owner tasks").
+"Steady" means the gap between frame timestamps varies by 2 ms or less. WebM stores whole milliseconds, so its 16/17 ms gaps are rounding. None of the three clips is HDR or has variable frame rate. "No gyro" means no GoPro GPMF (`gpmd`) or CAMM track was found; the iPhone clip's two Apple `mebx` metadata tracks were not decoded, so their content is unknown. HDR, variable frame rate and gyro cases still need the owner's extra clips (STATUS.md "Owner tasks").
 
 ## Graphics-card encoders
 

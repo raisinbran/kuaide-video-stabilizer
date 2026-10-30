@@ -43,7 +43,8 @@ try {
     Assert-True ($LASTEXITCODE -eq 0) 'Probe failed on generated clips.'
     $report = (Get-Content -LiteralPath (Join-Path $out 'clip-probes.json') -Raw | ConvertFrom-Json).clips
     $byName = @{}; foreach ($clip in $report) { $byName[$clip.file_name] = $clip }
-    Assert-True ([Math]::Abs($byName['rotated.mp4'].video.rotation_degrees) -eq 90 -and $byName['plain.mp4'].video.rotation_degrees -eq 0) 'Rotation was not read.'
+    # ffmpeg's -display_rotation and the display matrix both count counterclockwise.
+    Assert-True ($byName['rotated.mp4'].video.rotation_degrees -eq 90 -and $byName['plain.mp4'].video.rotation_degrees -eq 0) 'Rotation was not read.'
     Assert-True ($byName['hdr.mp4'].video.hdr -and -not $byName['plain.mp4'].video.hdr) 'HDR flag is wrong.'
     Assert-True ($byName['vfr.mp4'].video.timing.variable_frame_rate -and -not $byName['plain.mp4'].video.timing.variable_frame_rate) 'Variable frame rate flag is wrong.'
     Assert-True (-not ($report | Where-Object gyro_track)) 'Generated clips have no gyro track.'
@@ -53,6 +54,14 @@ try {
     & $pwsh -NoProfile -NonInteractive -File $probe -FfprobePath $FfprobePath -OutputDirectory (Join-Path $work 'changed') -ManifestPath $manifest 2>&1 | Out-Null
     Assert-True ($LASTEXITCODE -ne 0 -and -not (Test-Path (Join-Path $work 'changed'))) 'A clip that differs from the manifest was probed.'
     Write-Output 'PASS a clip that differs from the manifest stops the run without output'
+
+    New-Clip 'audio-only.m4a' @('-f', 'lavfi', '-i', 'sine=duration=1', '-c:a', 'aac')
+    $audioPath = Join-Path $clips 'audio-only.m4a'
+    $audioManifest = Join-Path $work 'audio.manifest.json'
+    @{ files = @([ordered]@{ file_name = 'audio-only.m4a'; size_bytes = (Get-Item $audioPath).Length; sha256 = (Get-FileHash $audioPath).Hash.ToLowerInvariant() }) } | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $audioManifest -Encoding utf8
+    $messages = & $pwsh -NoProfile -NonInteractive -File $probe -FfprobePath $FfprobePath -OutputDirectory (Join-Path $work 'audio') -ManifestPath $audioManifest 2>&1
+    Assert-True ($LASTEXITCODE -ne 0 -and ($messages -join "`n") -match 'No video stream: audio-only.m4a') 'A file without video did not fail with a clear message.'
+    Write-Output 'PASS a file without video fails with a named error'
     Write-Output "Scratch results: $work"
 } finally {
     $env:KUAIDE_CLIPS_DIR = $prior

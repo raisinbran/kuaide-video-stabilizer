@@ -36,7 +36,9 @@ try {
             $elapsed = $watch.ElapsedMilliseconds
             $frames = $null
             if ($exit -eq 0) {
-                $frames = [int](& $FfprobePath -v error -count_frames -select_streams v:0 -show_entries stream=nb_read_frames -of csv=p=0 $name)
+                $count = & $FfprobePath -v error -count_frames -select_streams v:0 -show_entries stream=nb_read_frames -of csv=p=0 $name
+                if ($LASTEXITCODE -ne 0) { throw "ffprobe could not read $name" }
+                $frames = [int]$count
             }
             [ordered]@{
                 encoder = $encoder; chain = $chain; ok = ($exit -eq 0 -and $frames -eq 90); exit_code = $exit
