@@ -32,7 +32,8 @@ foreach ($directory in @($clips, $repo)) {
 }
 $reportPath = Join-Path $output 'clips.manifest.json'
 if (Test-Path -LiteralPath $reportPath) { throw "Output already exists: $reportPath" }
-$names = [string[]]@(Get-ChildItem -LiteralPath $clips -File -Force | ForEach-Object Name)
+$skip = [IO.FileAttributes]::Hidden -bor [IO.FileAttributes]::System
+$names = [string[]]@(Get-ChildItem -LiteralPath $clips -File -Force | Where-Object { ($_.Attributes -band $skip) -eq 0 } | ForEach-Object Name)
 [Array]::Sort($names, [StringComparer]::Ordinal)
 if ($names.Count -eq 0) { throw 'No top-level files found in the original-clips directory.' }
 $entries = @(

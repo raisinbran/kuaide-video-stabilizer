@@ -7,6 +7,10 @@ $originals = New-Item -ItemType Directory -Path (Join-Path $work 'originals')
 $output = New-Item -ItemType Directory -Path (Join-Path $work 'output')
 [IO.File]::WriteAllBytes((Join-Path $originals.FullName 'space clip.mp4'), [byte[]]@(97, 98, 99))
 [IO.File]::WriteAllBytes((Join-Path $originals.FullName '歩く clip.MOV'), [byte[]]@())
+# Windows and Drive leave hidden files such as desktop.ini beside clips; they must not be listed.
+$hidden = Join-Path $originals.FullName 'desktop.ini'
+[IO.File]::WriteAllBytes($hidden, [byte[]]@(120))
+[IO.File]::SetAttributes($hidden, [IO.FileAttributes]::Hidden)
 $pwsh = (Get-Process -Id $PID).Path
 $priorClips = $env:KUAIDE_CLIPS_DIR
 
