@@ -16,11 +16,12 @@ In plain words: Phase 1 has started, but most of it is still ahead. So far the a
 - Phase 0 (repository setup) is complete. The GitHub repo is renamed to `kuaide-video-stabilizer`. No app code yet.
 - Phase 1 is approved. Bounded replacement spikes are implemented; no app UI or core implementation has started.
 - The original plans at `e1d7d4d`, `f63b6e6`, and `3be84fb` remain unavailable. `docs/phase-1-start` shows they were committed on `feat/wp-1a-stabilization-benchmark`, `feat/wp-1b-preview-playback` and `feat/wp-1c-media-capabilities`, which were never pushed; they are most likely only on the original Windows PC. Replacements are explicitly labeled; compare any recovered plans before combining work.
+- On 2026-10-29 the owner approved, and Claude Code squash-merged, PRs #1-#6 into `main`: recovery rules `373b8ac`, WP 1C-R1 `d80c3ba`, WP 1C-R2 `f0e7929`, WP 1C-R3 `9ef172e`, QA-R1 `a324897`, WP 1A-R1 `22726ea`. All four test suites and the real smoke pass on `main`. The branch hashes in the next lines are the pre-merge history.
 - Recovery rules and documents: `docs/phase-1-recovery` at `9f2c01f`. WP 1C-R1 collector: `feat/wp-1c-build-inventory` at `dbe42b5`. WP 1A-R1 manifest: `feat/wp-1a-clip-manifest` at `957089c`, with status correction `2daa176`. Both packages passed independent review and their offline suites.
 - WP 1C-R2 is committed at `a4dff44` on `feat/wp-1c-windows-build`, based on `dbe42b5`. The acquisition, real listing evidence, source and tests passed independent review.
 - WP 1C-R3 is committed at `bbbb76f` on `feat/wp-1c-software-smoke`, based on `a4dff44`. It passed real synthetic encoding/filter checks and independent source/evidence review: nine zero-exit commands and three 320x180, 30-frame, one-second outputs. See `spikes/media-capabilities/evidence/2026-10-29-software-smoke.md`. No original footage or hardware encoder has been tested.
-- The owner approved publishing the five completed branches. All five were published and their GitHub ref hashes verified against local commits on 2026-10-29. No PR or merge is authorized.
-- QA-R1 (Claude Code check of the Codex handoff) is on `fix/qa-r1-handoff-fixes`: download-script fixes, a measured shake-reduction check, PowerShell 7 installed and on PATH, and this plain-words summary. Rebuilt Phase 1 plans: `dev-plan/plans/phase-1-wp-plans.md`. Plan: `dev-plan/plans/qa-r1-phase-1-handoff-fixes.md`.
+- The owner approved publishing the five completed branches. All five were published and their GitHub ref hashes verified against local commits on 2026-10-29. Later PRs and merges each need a new owner approval.
+- QA-R1 (Claude Code check of the Codex handoff), merged as `a324897`: download-script fixes, a measured shake-reduction check, PowerShell 7 installed and on PATH, and this plain-words summary. Rebuilt Phase 1 plans: `dev-plan/plans/phase-1-wp-plans.md`. Plan: `dev-plan/plans/qa-r1-phase-1-handoff-fixes.md`.
 - Account allowance: read it fresh at session start and at each stable point. Begin wrap-up at 5% remaining or earlier; the handover must be ready and work already stopped at a stable point before either the five-hour or weekly allowance reaches 1%.
 
 ## Machines
@@ -63,7 +64,7 @@ In plain words: Phase 1 has started, but most of it is still ahead. So far the a
 
 ## Open questions for the owner
 
-- Approve pushing `fix/qa-r1-handoff-fixes`, opening the six PRs and merging them in the order in the QA-R1 plan. Each push, PR and merge needs a yes in chat.
+- Which Phase 1 piece to start next. Recommended: 1B.1 (Tauri test app), the only one that needs no clips or extra hardware, after installing Rust, Node.js and the Tauri prerequisites on this laptop. See `dev-plan/plans/phase-1-wp-plans.md`.
 - If the original Windows PC is available, push the three unpushed plan branches from it (see "Current position"). Compare any recovered work before combining it with replacements.
 
 ## Waiting for owner hardware
@@ -74,7 +75,8 @@ In plain words: Phase 1 has started, but most of it is still ahead. So far the a
 
 - `dev-plan/handover/2026-10-29-phase-1-planning.md` (copied from the published coordination branch).
 - `dev-plan/handover/2026-10-29-recovery-and-allowance.md` (current local recovery record).
-- `dev-plan/handover/2026-10-29-phase-1-spikes.md` (latest continuation instructions and branch map).
+- `dev-plan/handover/2026-10-29-phase-1-spikes.md` (Codex continuation instructions and branch map, before QA).
+- `dev-plan/handover/2026-10-29-qa-and-merge.md` (latest: QA, rebuilt plans and merges into `main`).
 
 ## Verification and next work
 
