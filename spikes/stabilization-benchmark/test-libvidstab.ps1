@@ -1,8 +1,8 @@
 #requires -Version 7.0
 # Checks the libvidstab engine and measure-run.ps1 on the synthetic shaken still:
 # the copy baseline must measure as unchanged, libvidstab must cut the shake to
-# under half, and unsafe filter options must be refused. Dark-edge detection
-# cannot establish geometric crop, so transformed outputs keep crop unavailable.
+# under half with a measured crop, and unsafe filter options must be refused.
+# Outputs without a border image keep crop unavailable.
 param([Parameter(Mandatory)][string]$FfmpegPath)
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -43,8 +43,8 @@ try {
     Write-Output 'PASS the unstabilized baseline measures as unchanged with no crop'
 
     $stabilized = Measure-Settings (Join-Path $PSScriptRoot 'settings/libvidstab-auto.json') 'auto'
-    Assert-True ($stabilized.reduction -lt 0.5 -and $null -eq $stabilized.crop_pct -and $stabilized.crop_status -eq 'geometric_measurement_unavailable') "libvidstab did not reduce shake with crop uncertainty preserved: $($stabilized | ConvertTo-Json -Compress)"
-    Write-Output "PASS libvidstab cuts synthetic shake to $([int]($stabilized.reduction * 100))%; geometric crop remains unavailable"
+    Assert-True ($stabilized.reduction -lt 0.5 -and $stabilized.crop_status -eq 'geometric_mask' -and $stabilized.crop_pct -gt 2 -and $stabilized.crop_pct -lt 50) "libvidstab did not reduce shake with a measured crop: $($stabilized | ConvertTo-Json -Compress)"
+    Write-Output "PASS libvidstab cuts synthetic shake to $([int]($stabilized.reduction * 100))% with $($stabilized.crop_pct)% crop"
 
     $unsafe = Join-Path $work 'unsafe.json'
     @{ engine = 'libvidstab'; name = 'unsafe'; detect = 'shakiness=5'; transform = 'smoothing=10,drawtext=text=x'; preset = 'veryfast'; crf = 18 } | ConvertTo-Json | Set-Content -LiteralPath $unsafe
@@ -88,6 +88,23 @@ try {
     }
     Assert-True ($measured.dark.clip.observed_dark_edges_pct -gt 10) 'The dark-edge fixture did not exercise the misleading border detector.'
     Write-Output 'PASS dark edges and rotated corners do not become crop scores'
+
+    # Known shapes: a band gives an exact answer; tilted corners must count though
+    # the old border detector called a tilted white frame full size.
+    $ppm = { param($Name, $Filter)
+        $path = Join-Path $work $Name
+        & $FfmpegPath -v error -nostdin -f lavfi -i 'color=white:s=320x180:d=0.1' -vf "$Filter,format=gray,negate" -frames:v 1 -c:v pgm -f image2 -update 1 $path
+        Assert-True ($LASTEXITCODE -eq 0) "Could not make $Name"
+        $path
+    }
+    $crop = { param($Path) (& $pwsh -NoProfile -NonInteractive -File (Join-Path $PSScriptRoot 'get-valid-crop.ps1') -MaskPath $Path) | ConvertFrom-Json }
+    $whole = & $crop (& $ppm 'whole.pgm' 'null')
+    $band = & $crop (& $ppm 'band.pgm' 'drawbox=x=0:y=0:w=32:h=ih:color=black:t=fill')
+    $tilted = & $crop (& $ppm 'tilted.pgm' 'rotate=0.1:fillcolor=black')
+    Assert-True ($whole.crop_pct -eq 0) "A frame without border lost $($whole.crop_pct)%."
+    Assert-True ($band.kept_width -eq 288 -and [Math]::Abs($band.crop_pct - 19) -lt 0.5) "A 10% band should keep 90% of each side: $($band | ConvertTo-Json -Compress)"
+    Assert-True ($tilted.crop_pct -gt 10 -and $tilted.crop_pct -lt 40) "Tilted corners were not counted: $($tilted | ConvertTo-Json -Compress)"
+    Write-Output "PASS the valid rectangle is exact for a band and counts tilted corners ($($tilted.crop_pct)%)"
     Remove-Item -LiteralPath $work -Recurse -Force
 } finally {
     $env:KUAIDE_CLIPS_DIR = $prior

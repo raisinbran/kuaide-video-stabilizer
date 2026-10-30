@@ -12,8 +12,10 @@
 # reduction is output shake / original shake (lower is steadier; 1 is unchanged).
 # Frozen output would look perfectly steady, so frozen time is measured too and
 # a clip whose output freezes 1 s more than its original is flagged.
+# Crop: identical bytes prove zero added crop. Otherwise crop_pct comes from the
+# engine's border-union image (get-valid-crop.ps1), or stays null if it has none.
 # Dark-edge detection confuses dark scenery with borders and misses rotated
-# corners. Geometric crop is unavailable; identical bytes prove zero added crop.
+# corners, so observed_dark_edges_pct is a diagnostic only.
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)][string]$RunDirectory,
@@ -149,14 +151,21 @@ try {
         $entry = [ordered]@{ file_name = $result.file_name; engine = $run.engine; settings_name = $run.settings_name; elapsed_ms = $result.elapsed_ms }
         foreach ($key in $pair.Keys) { $entry[$key] = $pair[$key] }
         $entry.observed_dark_edges_pct = Get-DarkEdgePercent $output
-        $entry.crop_pct = if ($identical) { 0.0 } else { $null }
-        $entry.crop_status = if ($identical) { 'unchanged_bytes' } else { 'geometric_measurement_unavailable' }
+        $mask = Join-Path $folder 'work/border-union.pgm'
+        if ($identical) {
+            $entry.crop_pct = 0.0; $entry.crop_status = 'unchanged_bytes'
+        } elseif (Test-Path -LiteralPath $mask -PathType Leaf) {
+            $valid = & $PSScriptRoot/get-valid-crop.ps1 -MaskPath $mask | ConvertFrom-Json
+            $entry.crop_pct = $valid.crop_pct; $entry.crop_status = 'geometric_mask'
+        } else {
+            $entry.crop_pct = $null; $entry.crop_status = 'geometric_measurement_unavailable'
+        }
         $entry
     }
 } finally { Remove-Item -LiteralPath $scratch -Recurse -Force -ErrorAction SilentlyContinue }
 $file = [IO.File]::Open($metricsPath, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None)
 try {
-    $bytes = [Text.UTF8Encoding]::new($false).GetBytes((@{ measurement_version = 2; window_frames = $Window; analysis = $Analysis; clips = @($metrics) } | ConvertTo-Json -Depth 6) + [Environment]::NewLine)
+    $bytes = [Text.UTF8Encoding]::new($false).GetBytes((@{ measurement_version = 3; window_frames = $Window; analysis = $Analysis; clips = @($metrics) } | ConvertTo-Json -Depth 6) + [Environment]::NewLine)
     $file.Write($bytes, 0, $bytes.Length)
 } finally { $file.Dispose() }
 Write-Output $metricsPath

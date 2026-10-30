@@ -26,3 +26,11 @@ if ($LASTEXITCODE -ne 0) { throw "vidstabdetect failed ($LASTEXITCODE)" }
     -vf "vidstabtransform=input=motion.trf:$($settings.transform),format=yuv420p" `
     -c:v libx264 -preset $settings.preset -crf $settings.crf -c:a aac -b:a 192k -movflags +faststart $OutputPath
 if ($LASTEXITCODE -ne 0) { throw "vidstabtransform failed ($LASTEXITCODE)" }
+
+# Same motion on an all-white copy of the clip: whatever is not white is border.
+# lagfun keeps each pixel's brightest value, so after negate the last frame holds
+# every pixel that was border in any frame (see get-valid-crop.ps1).
+& $FfmpegPath -hide_banner -nostdin -n -i $InputPath -an `
+    -vf "format=yuv420p,drawbox=x=0:y=0:w=iw:h=ih:color=white:t=fill,vidstabtransform=input=motion.trf:$($settings.transform),format=gray,scale=320:-2:flags=area,negate,lagfun=decay=1" `
+    -c:v pgm -f image2 -update 1 border-union.pgm
+if ($LASTEXITCODE -ne 0) { throw "Border mask failed ($LASTEXITCODE)" }
