@@ -16,7 +16,7 @@ Both methods play and seek a 1080p H.264 file on Windows, shown by the app's own
 - [x] Rust tests for range parsing and reads.
 
 ## Current State
-Base commit: b723b7cd
+Base commit: b723b7c
 
 `main` after PR #7. Rust 1.99.1, Node.js 26 LTS, MSVC build tools (`C:\BuildTools`) and WebView2 156 are installed on the current laptop.
 
@@ -45,9 +45,10 @@ Then run the self-test from the README with a 1080p H.264 file. Result on 2026-1
 
 ## Notes for agents
 
-1. `orchestrator-proposed`: no npm. The `custom-protocol` Cargo feature embeds `ui/` in every build, so `cargo build` is enough and no `package.json` or `package-lock.json` is needed. Add the Tauri CLI only when bundling is needed.
-2. `orchestrator-proposed`: replies are read into memory and capped (4 MB protocol, 8 MB HTTP); the player asks again for the rest. A request without a range gets 200 only when the whole file fits, otherwise the first chunk as 206.
-3. `orchestrator-proposed`: each URL carries a random token and serves only the last opened file. The token comes from `RandomState`, which is enough against other local pages but is not a security boundary for a shipped app.
+1. `proposed`: no npm. The `custom-protocol` Cargo feature embeds `ui/` in every build, so `cargo build` is enough and no `package.json` or `package-lock.json` is needed. Add the Tauri CLI only when bundling is needed.
+2. `proposed`: replies are read into memory and capped (4 MB protocol, 8 MB HTTP); the player asks again for the rest. A request without a range gets 200 only when the whole file fits, otherwise the first chunk as 206.
+3. `proposed`: each URL carries a random token and serves only the last opened file. The token comes from `RandomState`, which is enough against other local pages but is not a security boundary for a shipped app.
 4. The HTTP server sends no CORS header. WP 1B.3 needs one (or `crossorigin`) before drawing the video into WebGL.
 5. `icons/icon.ico` is a 152-byte single-color icon made with the pinned FFmpeg, because Tauri needs an icon to build on Windows.
-6. Size: about 523 lines excluding the generated `Cargo.lock`, which is committed (owner rule 2026-10-29).
+6. Size: about 600 lines excluding the generated `Cargo.lock`, which is committed (owner rule 2026-10-29).
+7. A fresh Claude Code reviewer found no blocking bugs. Fixed after review: a self-test that could hang if its report could not be written (now exits 2, with a 120 s watchdog exiting 3), missing range tests (empty file, suffix longer than the file, range past the end, bytes=-0, Content-Range of an unranged 206) and test files left in temp, plus small cleanups. Not done: the HTTP path was not split into several replies by the 7 MB sample, because its cap is 8 MB.

@@ -6,7 +6,7 @@ mod range;
 
 use std::collections::hash_map::RandomState;
 use std::hash::{BuildHasher, Hasher};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -87,6 +87,12 @@ fn finish_self_test(report: serde_json::Value, passed: bool, app: tauri::AppHand
     Ok(())
 }
 
+/// Ends a self-test that could not write its report, with exit code 2.
+#[tauri::command]
+fn abort_self_test(app: tauri::AppHandle) {
+    app.exit(2);
+}
+
 fn protocol_response(opened: &Shared, request: &Request<Vec<u8>>) -> Response<Vec<u8>> {
     let token = request.uri().path().trim_start_matches('/');
     let Some(path) = lookup(opened, token) else {
@@ -144,12 +150,13 @@ fn http_reply(opened: &Shared, request: &tiny_http::Request) -> tiny_http::Respo
     match range::read_part(&path, range, HTTP_CHUNK) {
         Ok(part) => {
             let mut reply = tiny_http::Response::from_data(Vec::new()).with_status_code(part.status);
-            reply.add_header(text_header("Content-Type", range::content_type(Path::new(&path))));
+            reply.add_header(text_header("Content-Type", range::content_type(&path)));
             reply.add_header(text_header("Accept-Ranges", "bytes"));
             if part.status == 206 {
                 reply.add_header(text_header("Content-Range", &part.content_range()));
             }
-            reply.with_data(std::io::Cursor::new(part.body.clone()), Some(part.body.len()))
+            let len = part.body.len();
+            reply.with_data(std::io::Cursor::new(part.body), Some(len))
         }
         Err(range::PartError::Unsatisfiable { total }) => {
             let mut reply = empty(416);
@@ -165,6 +172,13 @@ fn text_header(name: &str, value: &str) -> tiny_http::Header {
 }
 
 fn main() {
+    if std::env::var_os("KUAIDE_SELFTEST_VIDEO").is_some() {
+        // A stuck page must still end the self-test, so callers see a failure, not a hang.
+        std::thread::spawn(|| {
+            std::thread::sleep(std::time::Duration::from_secs(120));
+            std::process::exit(3);
+        });
+    }
     let opened: Shared = Arc::default();
     let http_port = start_http_server(opened.clone()).expect("loopback HTTP server could not start");
     let protocol_state = opened.clone();
@@ -174,7 +188,7 @@ fn main() {
             let opened = protocol_state.clone();
             std::thread::spawn(move || responder.respond(protocol_response(&opened, &request)));
         })
-        .invoke_handler(tauri::generate_handler![open_video, self_test_video, finish_self_test])
+        .invoke_handler(tauri::generate_handler![open_video, self_test_video, finish_self_test, abort_self_test])
         .run(tauri::generate_context!())
         .expect("error while running the preview spike");
 }

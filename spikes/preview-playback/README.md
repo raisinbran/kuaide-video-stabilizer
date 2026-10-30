@@ -17,7 +17,7 @@ cargo test
 cargo build
 ```
 
-Self-test: set two environment variables and start the app. It plays each method to 1 second, seeks to the middle, writes a JSON report to a new file and exits with 0 if both worked, 1 if not.
+Self-test: set two environment variables and start the app. It plays each method to 1 second, seeks to the middle, writes a JSON report to a new file and exits with 0 if both worked, 1 if not, 2 if the report could not be written, and 3 if the test did not finish within 120 seconds.
 
 ```powershell
 $env:KUAIDE_SELFTEST_VIDEO = 'C:/path/to/sample-1080p.mp4'
@@ -29,4 +29,4 @@ A test video can be made with the pinned FFmpeg: `ffmpeg -f lavfi -i testsrc2=si
 
 ## Limits
 
-The self-test times are single runs in a debug build and are not measurements. Steady frame rate, memory, 5-minute files, proxies and the Mac are WP 1B.2. Video that WebView2 cannot decode (for example HEVC without the Windows extension) is out of scope here.
+The self-test times are single runs in a debug build and are not measurements. `start_to_one_second_ms` includes the one second of playback itself. Steady frame rate, memory, 5-minute files, proxies and the Mac are WP 1B.2. Video that WebView2 cannot decode (for example HEVC without the Windows extension) is out of scope here.

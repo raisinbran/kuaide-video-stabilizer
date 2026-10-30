@@ -63,12 +63,18 @@ for (const method of ['protocol', 'http']) {
 (async () => {
   const path = await invoke('self_test_video');
   if (!path) return;
-  document.getElementById('path').value = path;
-  const results = [];
-  for (const method of ['protocol', 'http']) {
-    try { results.push(await playAndSeek(method, await open(method))); }
-    catch (e) { results.push({ method, ok: false, error: String(e) }); }
+  try {
+    document.getElementById('path').value = path;
+    const results = [];
+    for (const method of ['protocol', 'http']) {
+      try { results.push(await playAndSeek(method, await open(method))); }
+      catch (e) { results.push({ method, ok: false, error: String(e) }); }
+    }
+    const passed = results.every((r) => r.ok);
+    await invoke('finish_self_test', { report: { passed, video: path, results }, passed });
+  } catch (e) {
+    // The report could not be written (for example, the file already exists).
+    log(`self-test aborted: ${e}`);
+    await invoke('abort_self_test');
   }
-  const passed = results.every((r) => r.ok);
-  await invoke('finish_self_test', { report: { passed, video: path, results }, passed });
 })();
