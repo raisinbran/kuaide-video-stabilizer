@@ -8,7 +8,8 @@
 # output shake / original shake (lower is better; 1 means unchanged).
 # Crop: cropdetect finds the picture area in every output frame; crop_pct is
 # the share of the frame outside the area that is picture in all frames.
-# Dark frame edges also read as border, so crop_pct is an upper bound.
+# Dark frame edges also read as border, so crop_pct is an upper bound. Black
+# frames are skipped, and each edge comes from the 99th-percentile frame.
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)][string]$RunDirectory,
@@ -58,14 +59,19 @@ function Get-CropPercent([string]$Path) {
     # The last Video line is the filtered stream, after rotation is applied.
     $size = $lines | Select-String -Pattern 'Video: .*?, (\d{2,5})x(\d{2,5})' | Select-Object -Last 1
     $width = [int]$size.Matches[0].Groups[1].Value; $height = [int]$size.Matches[0].Groups[2].Value
-    $x1 = 0; $y1 = 0; $x2 = $width - 1; $y2 = $height - 1
-    foreach ($m in ($lines | Select-String -Pattern 'x1:(\d+) x2:(\d+) y1:(\d+) y2:(\d+)')) {
+    $boxes = foreach ($m in ($lines | Select-String -Pattern 'x1:(\d+) x2:(\d+) y1:(\d+) y2:(\d+)')) {
         $g = $m.Matches[0].Groups
-        # A frame that is mostly black (fade, black frame) says nothing about borders.
-        if (([int]$g[2].Value - [int]$g[1].Value + 1) * ([int]$g[4].Value - [int]$g[3].Value + 1) -lt 0.25 * $width * $height) { continue }
-        $x1 = [Math]::Max($x1, [int]$g[1].Value); $x2 = [Math]::Min($x2, [int]$g[2].Value)
-        $y1 = [Math]::Max($y1, [int]$g[3].Value); $y2 = [Math]::Min($y2, [int]$g[4].Value)
+        $box = [pscustomobject]@{ x1 = [int]$g[1].Value; x2 = [int]$g[2].Value; y1 = [int]$g[3].Value; y2 = [int]$g[4].Value }
+        # A black frame gives an inside-out box; a mostly black one says nothing about borders.
+        if ($box.x2 -lt $box.x1 -or $box.y2 -lt $box.y1) { continue }
+        if (($box.x2 - $box.x1 + 1) * ($box.y2 - $box.y1 + 1) -lt 0.25 * $width * $height) { continue }
+        $box
     }
+    if (-not $boxes) { return $null }
+    # Each edge from the 99th-percentile frame, so a few dark frames cannot set the crop.
+    $at = { param($values, [double]$share) $sorted = @($values | Sort-Object); $sorted[[Math]::Min($sorted.Count - 1, [int]($share * $sorted.Count))] }
+    $x1 = & $at $boxes.x1 0.99; $y1 = & $at $boxes.y1 0.99
+    $x2 = & $at $boxes.x2 0.01; $y2 = & $at $boxes.y2 0.01
     $kept = [Math]::Max(0, $x2 - $x1 + 1) * [Math]::Max(0, $y2 - $y1 + 1)
     return [Math]::Round(100 * (1 - $kept / ($width * $height)), 2)
 }
