@@ -9,7 +9,9 @@ function Resolve-PlainPath([string]$Path, [bool]$Directory) {
     if ($item.PSIsContainer -ne $Directory) { throw "Unexpected path kind: $Path" }
     $cursor = $item
     while ($null -ne $cursor) {
-        if (($cursor.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
+        # Symbolic links and junctions have a link target. Cloud-storage placeholders
+        # (OneDrive, Google Drive) are reparse points too, but have none, so they pass.
+        if ($null -ne $cursor.LinkTarget) {
             throw "Linked paths are not supported: $Path"
         }
         $cursor = if ($cursor -is [IO.DirectoryInfo]) { $cursor.Parent } else { $cursor.Directory }

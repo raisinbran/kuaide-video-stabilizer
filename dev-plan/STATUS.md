@@ -70,7 +70,7 @@ In plain words: Phase 1 has started, but most of it is still ahead. So far the a
 
 ## Waiting for owner hardware
 
-- Original Windows clips and hardware are unavailable in this session. Mac availability and exact clips path remain unverified.
+- On 2026-10-30 the owner gave a copy of the first three clips in a OneDrive folder on the current laptop (full path kept out of this public repo; set `KUAIDE_CLIPS_DIR` to it). Their names, sizes and SHA-256 are in `spikes/stabilization-benchmark/clips.manifest.json`. The original Windows reference PC and the Mac are still unavailable; the Mac clips path is unverified.
 
 ## Handover log
 

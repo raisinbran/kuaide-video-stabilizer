@@ -10,7 +10,7 @@ pwsh -NoProfile -File ./spikes/stabilization-benchmark/write-clip-manifest.ps1 `
   -OutputDirectory 'C:/benchmark-evidence/run-01'
 ```
 
-The script creates `clips.manifest.json` with create-new semantics. It refuses an existing report. It rejects linked paths, including junctions or symbolic links in ancestors. It does not create or remove directories. A disk write failure can leave a new incomplete report, but cannot overwrite an earlier file.
+The script creates `clips.manifest.json` with create-new semantics. It refuses an existing report. It rejects linked paths, including junctions or symbolic links in ancestors. Cloud-storage placeholders (OneDrive, Google Drive files-on-demand) are reparse points without a link target and are accepted; hashing them downloads the full file. It does not create or remove directories. A disk write failure can leave a new incomplete report, but cannot overwrite an earlier file.
 
 The manifest uses filenames only, so it can later be reviewed for inclusion at `spikes/stabilization-benchmark/clips.manifest.json` without committing a computer-specific source directory. Review filenames for private information before sharing. Do not commit original footage or local output directories. Future benchmark scripts must resolve the filenames against `KUAIDE_CLIPS_DIR`.
 
