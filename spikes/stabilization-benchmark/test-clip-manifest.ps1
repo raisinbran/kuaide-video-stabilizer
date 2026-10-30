@@ -54,6 +54,12 @@ try {
     $result = Invoke-Manifest $emptyOutput.FullName
     Assert-True ($result.exit_code -ne 0 -and $result.messages -match 'KUAIDE_CLIPS_DIR' -and -not (Test-Path (Join-Path $emptyOutput.FullName 'clips.manifest.json'))) 'Missing environment was accepted.'
     Write-Output 'PASS missing source environment fails without output'
+
+    $env:KUAIDE_CLIPS_DIR = (New-Item -ItemType Junction -Path (Join-Path $work 'linked-originals') -Target $originals.FullName).FullName
+    $linkOutput = New-Item -ItemType Directory -Path (Join-Path $work 'linked-output')
+    $result = Invoke-Manifest $linkOutput.FullName
+    Assert-True ($result.exit_code -ne 0 -and $result.messages -match 'Linked paths' -and -not (Test-Path (Join-Path $linkOutput.FullName 'clips.manifest.json'))) 'A junction to the clips was accepted.'
+    Write-Output 'PASS linked clips directory is rejected'
     Write-Output "Scratch results: $work"
 } finally {
     $env:KUAIDE_CLIPS_DIR = $priorClips
