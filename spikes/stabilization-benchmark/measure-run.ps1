@@ -2,14 +2,21 @@
 # WP 1A.2: measures leftover shake and needed crop for every successful clip in
 # a benchmark run, and writes metrics.json into the run folder.
 #
-# Shake: libvidstab estimates the camera motion between frames (x, y in pixels)
-# for the original and the output. Slow intended motion is removed with a
-# 15-frame moving average; shake_px is the RMS of what remains. reduction is
-# output shake / original shake (lower is better; 1 means unchanged).
+# Shake: both the original and the output are first brought to one analysis
+# form: 30 fps, the central 70% of the frame (so black borders are not in view),
+# scaled to 640 px wide, 8-bit. libvidstab then estimates the camera motion
+# between frames (x, y). Slow intended motion is removed with a 15-frame (0.5 s)
+# moving average; shake_px is the RMS of what remains, in analysis pixels per
+# 1/30 s, so clips and engines of any size and frame rate compare directly.
+# Frames where the original jumps (cuts, black frames) are dropped from both.
+# reduction is output shake / original shake (lower is steadier; 1 is unchanged).
+# Frozen output would look perfectly steady, so frozen time is measured too and
+# a clip whose output freezes 1 s more than its original is flagged.
 # Crop: cropdetect finds the picture area in every output frame; crop_pct is
-# the share of the frame outside the area that is picture in all frames.
-# Dark frame edges also read as border, so crop_pct is an upper bound. Black
-# frames are skipped, and each edge comes from the 99th-percentile frame.
+# the share of the frame outside the area that is picture in all frames. Black
+# frames are skipped and each edge comes from the 99th-percentile frame. Dark
+# frame edges also read as border, so crop_pct is an upper bound; an engine that
+# zooms to fill the frame shows 0 here and reports its zoom separately.
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)][string]$RunDirectory,
@@ -18,43 +25,95 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $Window = 15
+$Analysis = 'fps=30,crop=trunc(iw*0.7/2)*2:trunc(ih*0.7/2)*2,scale=640:-2,format=yuv420p'
 
-function Get-Shake([string]$Path, [string]$Work) {
+# Frame-to-frame camera motion of a video, in analysis pixels.
+function Get-Motion([string]$Path, [string]$Work) {
     [IO.Directory]::CreateDirectory($Work) | Out-Null
     Push-Location -LiteralPath $Work
     try {
-        & $FfmpegPath -v error -nostdin -n -i $Path -vf 'vidstabdetect=shakiness=10:accuracy=15:result=measure.trf' -f null -
+        & $FfmpegPath -v error -nostdin -n -i $Path -vf "$Analysis,vidstabdetect=shakiness=10:accuracy=15:result=measure.trf" -f null - | Out-Null
         if ($LASTEXITCODE -ne 0) { throw "Motion analysis failed: $Path" }
-        # debug=1 makes vidstabtransform write the per-frame motion as text to global_motions.trf.
-        & $FfmpegPath -v error -nostdin -i $Path -vf 'vidstabtransform=input=measure.trf:debug=1' -f null -
+        # debug=1 makes vidstabtransform write the per-frame motion as text to
+        # global_motions.trf; its columns are: 0, x, y, angle, zoom, flags.
+        & $FfmpegPath -v error -nostdin -i $Path -vf "$Analysis,vidstabtransform=input=measure.trf:optalgo=gauss:debug=1" -f null - | Out-Null
         if ($LASTEXITCODE -ne 0) { throw "Motion export failed: $Path" }
-        $motion = @(Get-Content -LiteralPath 'global_motions.trf' | Where-Object { $_ -match '^\s*-?\d' } | ForEach-Object {
+        return @(Get-Content -LiteralPath 'global_motions.trf' | Where-Object { $_ -match '^\s*-?\d' } | ForEach-Object {
             $f = $_.Trim() -split '\s+'
             [pscustomobject]@{ x = [double]::Parse($f[1], [Globalization.CultureInfo]::InvariantCulture); y = [double]::Parse($f[2], [Globalization.CultureInfo]::InvariantCulture) }
         })
     } finally { Pop-Location }
-    if ($motion.Count -le $Window) { throw "Too few frames to measure shake: $Path" }
-    $residual = for ($i = 0; $i -lt $motion.Count; $i++) {
-        $from = [Math]::Max(0, $i - [int]($Window / 2)); $to = [Math]::Min($motion.Count - 1, $i + [int]($Window / 2))
+}
+
+# Squared distance of each frame's motion from its 15-frame average (shake),
+# and its squared size (all motion).
+function Get-Residual($Motion) {
+    for ($i = 0; $i -lt $Motion.Count; $i++) {
+        $from = [Math]::Max(0, $i - [int]($Window / 2)); $to = [Math]::Min($Motion.Count - 1, $i + [int]($Window / 2))
         $mx = 0.0; $my = 0.0
-        for ($j = $from; $j -le $to; $j++) { $mx += $motion[$j].x; $my += $motion[$j].y }
+        for ($j = $from; $j -le $to; $j++) { $mx += $Motion[$j].x; $my += $Motion[$j].y }
         $n = $to - $from + 1
-        [pscustomobject]@{ shake = [Math]::Pow($motion[$i].x - $mx / $n, 2) + [Math]::Pow($motion[$i].y - $my / $n, 2); raw = [Math]::Pow($motion[$i].x, 2) + [Math]::Pow($motion[$i].y, 2) }
+        [pscustomobject]@{ shake = [Math]::Pow($Motion[$i].x - $mx / $n, 2) + [Math]::Pow($Motion[$i].y - $my / $n, 2); raw = [Math]::Pow($Motion[$i].x, 2) + [Math]::Pow($Motion[$i].y, 2) }
     }
-    # Cuts and black frames give single huge jumps that are not shake; drop samples
-    # more than 10 times the typical (median) size, and say how many were dropped.
-    $sorted = @($residual.shake | Sort-Object)
-    $limit = [Math]::Max(100 * $sorted[[int]($sorted.Count / 2)], 1.0)
-    $kept = @($residual | Where-Object { $_.shake -le $limit })
+}
+
+function Get-Summary($Residual, [bool[]]$Keep) {
+    $kept = @(for ($i = 0; $i -lt $Residual.Count; $i++) { if ($Keep[$i]) { $Residual[$i] } })
     return [ordered]@{
-        frames = $motion.Count; outliers_dropped = $motion.Count - $kept.Count
         shake_px = [Math]::Round([Math]::Sqrt(($kept.shake | Measure-Object -Sum).Sum / $kept.Count), 3)
         motion_px = [Math]::Round([Math]::Sqrt(($kept.raw | Measure-Object -Sum).Sum / $kept.Count), 3)
     }
 }
 
+# Seconds of frozen picture (no change for 0.5 s or more).
+function Get-FrozenSeconds([string]$Path) {
+    $lines = & $FfmpegPath -hide_banner -nostdin -i $Path -vf "$Analysis,freezedetect=n=0.001:d=0.5" -an -f null - 2>&1 | ForEach-Object { "$_" }
+    if ($LASTEXITCODE -ne 0) { throw "freezedetect failed: $Path" }
+    $number = { param($text) [double]::Parse($text, [Globalization.CultureInfo]::InvariantCulture) }
+    $total = 0.0
+    foreach ($m in ($lines | Select-String -Pattern 'freeze_duration: ?([0-9.]+)')) { $total += & $number $m.Matches[0].Groups[1].Value }
+    # A freeze that lasts to the end is reported only by its start.
+    $starts = @($lines | Select-String -Pattern 'freeze_start: ?([0-9.]+)')
+    $ends = @($lines | Select-String -Pattern 'freeze_end')
+    if ($starts.Count -gt $ends.Count) {
+        $length = $lines | Select-String -Pattern 'Duration: (\d+):(\d+):([0-9.]+)' | Select-Object -First 1
+        $g = $length.Matches[0].Groups
+        $seconds = 3600 * [int]$g[1].Value + 60 * [int]$g[2].Value + (& $number $g[3].Value)
+        $total += $seconds - (& $number $starts[-1].Matches[0].Groups[1].Value)
+    }
+    return [Math]::Round($total, 2)
+}
+
+# Compares an output with its original on the same frames.
+function Measure-Pair([string]$Original, [string]$Output, [string]$Work) {
+    $before = @(Get-Motion $Original (Join-Path $Work 'in'))
+    $after = @(Get-Motion $Output (Join-Path $Work 'out'))
+    if ($before.Count -le $Window) { throw "Too few frames to measure shake: $Original" }
+    if ([Math]::Abs($after.Count - $before.Count) -gt [Math]::Max(2, 0.01 * $before.Count)) {
+        throw "Output has $($after.Count) frames at 30 fps, original $($before.Count): $Output"
+    }
+    $count = [Math]::Min($before.Count, $after.Count)
+    $inResidual = @(Get-Residual $before)[0..($count - 1)]
+    $outResidual = @(Get-Residual $after)[0..($count - 1)]
+    # Cuts and black frames give single huge jumps in the original that are not
+    # shake; drop those frames, more than 10 times the median size, from both.
+    $sorted = @($inResidual.shake | Sort-Object)
+    $limit = [Math]::Max(100 * $sorted[[int]($sorted.Count / 2)], 1.0)
+    $keep = [bool[]]@($inResidual | ForEach-Object { $_.shake -le $limit })
+    $inSummary = Get-Summary $inResidual $keep
+    $outSummary = Get-Summary $outResidual $keep
+    $frozenIn = Get-FrozenSeconds $Original
+    $frozenOut = Get-FrozenSeconds $Output
+    return [ordered]@{
+        frames = $count; frames_dropped = @($keep | Where-Object { -not $_ }).Count
+        original = $inSummary; output = $outSummary
+        reduction = if ($inSummary.shake_px -gt 0) { [Math]::Round($outSummary.shake_px / $inSummary.shake_px, 3) } else { $null }
+        frozen_seconds_original = $frozenIn; frozen_seconds_output = $frozenOut
+        frozen_output = ($frozenOut - $frozenIn) -gt 1.0
+    }
+}
 function Get-CropPercent([string]$Path) {
-    $lines = & $FfmpegPath -hide_banner -nostdin -i $Path -vf 'cropdetect=limit=24:round=2:reset=1' -f null - 2>&1 | ForEach-Object { "$_" }
+    $lines = & $FfmpegPath -hide_banner -nostdin -i $Path -vf 'format=yuv420p,cropdetect=limit=24:round=2:reset=1' -f null - 2>&1 | ForEach-Object { "$_" }
     if ($LASTEXITCODE -ne 0) { throw "cropdetect failed: $Path" }
     # The last Video line is the filtered stream, after rotation is applied.
     $size = $lines | Select-String -Pattern 'Video: .*?, (\d{2,5})x(\d{2,5})' | Select-Object -Last 1
@@ -86,19 +145,16 @@ try {
     $metrics = foreach ($result in @($run.results | Where-Object status -eq 'ok')) {
         $folder = Join-Path $RunDirectory ($result.file_name -replace '[^A-Za-z0-9._-]', '_')
         $output = @(Get-ChildItem -LiteralPath $folder -Filter 'output.*' -File)[0].FullName
-        $before = Get-Shake (Join-Path $clips $result.file_name) (Join-Path $scratch "$($result.file_name)-in")
-        $after = Get-Shake $output (Join-Path $scratch "$($result.file_name)-out")
-        [ordered]@{
-            file_name = $result.file_name; engine = $run.engine; settings_name = $run.settings_name; elapsed_ms = $result.elapsed_ms
-            original = $before; output = $after
-            reduction = if ($before.shake_px -gt 0) { [Math]::Round($after.shake_px / $before.shake_px, 3) } else { $null }
-            crop_pct = Get-CropPercent $output
-        }
+        $pair = Measure-Pair (Join-Path $clips $result.file_name) $output (Join-Path $scratch ($result.file_name -replace '[^A-Za-z0-9._-]', '_'))
+        $entry = [ordered]@{ file_name = $result.file_name; engine = $run.engine; settings_name = $run.settings_name; elapsed_ms = $result.elapsed_ms }
+        foreach ($key in $pair.Keys) { $entry[$key] = $pair[$key] }
+        $entry.crop_pct = Get-CropPercent $output
+        $entry
     }
 } finally { Remove-Item -LiteralPath $scratch -Recurse -Force -ErrorAction SilentlyContinue }
 $file = [IO.File]::Open($metricsPath, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None)
 try {
-    $bytes = [Text.UTF8Encoding]::new($false).GetBytes((@{ window_frames = $Window; clips = @($metrics) } | ConvertTo-Json -Depth 6) + [Environment]::NewLine)
+    $bytes = [Text.UTF8Encoding]::new($false).GetBytes((@{ window_frames = $Window; analysis = $Analysis; clips = @($metrics) } | ConvertTo-Json -Depth 6) + [Environment]::NewLine)
     $file.Write($bytes, 0, $bytes.Length)
 } finally { $file.Dispose() }
 Write-Output $metricsPath

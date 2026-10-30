@@ -1,9 +1,9 @@
 {
   "engine": "libvidstab",
   "name": "auto",
-  "description": "libvidstab defaults, with black borders kept (optzoom=0) so the needed crop can be measured.",
+  "description": "Near-default libvidstab (default detection, short smoothing, plain Gaussian camera path), with black borders kept (optzoom=0) so the needed crop can be measured.",
   "detect": "shakiness=5:accuracy=15",
-  "transform": "smoothing=10:optzoom=0:crop=black",
+  "transform": "smoothing=10:optalgo=gauss:optzoom=0:crop=black",
   "preset": "veryfast",
   "crf": 18
 }

@@ -51,7 +51,37 @@ try {
     $report = Get-Content -LiteralPath (Join-Path $work 'run-unsafe/run.json') -Raw | ConvertFrom-Json
     Assert-True ($refused.exit_code -eq 1 -and @($report.results | Where-Object { $_.status -eq 'failed' -and $_.log_tail -match 'Unsafe filter options' }).Count -eq $report.clips) 'Unsafe filter options were not refused.'
     Write-Output 'PASS filter options that add filters or name files are refused'
-    Write-Output "Scratch results: $work"
+
+    # Stand-in engines that would fool a careless measure.
+    $engines = Join-Path $work 'engines'
+    [IO.Directory]::CreateDirectory($engines) | Out-Null
+    $params = 'param($InputPath, $OutputPath, $SettingsPath, $WorkDirectory, $FfmpegPath)'
+    $fixtures = @{
+        fps60 = "& `$FfmpegPath -v error -nostdin -i `$InputPath -vf 'minterpolate=fps=60' -c:v libx264 -preset veryfast -crf 18 `$OutputPath"
+        frozen = "& `$FfmpegPath -v error -nostdin -i `$InputPath -vf 'select=eq(n\,0),loop=loop=-1:size=1,trim=end_frame=120,setpts=N/30/TB' -c:v libx264 -preset veryfast -crf 18 `$OutputPath"
+        short = "& `$FfmpegPath -v error -nostdin -i `$InputPath -vf 'select=not(mod(n\,2)),setpts=N/30/TB' -c:v libx264 -preset veryfast -crf 18 `$OutputPath"
+    }
+    $measured = @{}
+    foreach ($name in $fixtures.Keys) {
+        Set-Content -LiteralPath (Join-Path $engines "$name.ps1") -Value "$params; $($fixtures[$name])"
+        $settings = Join-Path $work "$name.json"
+        @{ engine = $name; name = 'fixture' } | ConvertTo-Json | Set-Content -LiteralPath $settings
+        $run = Join-Path $work "run-$name"
+        $result = Invoke-Script 'run-benchmark.ps1' @('-SettingsPath', $settings, '-OutputDirectory', $run, '-ManifestPath', (Join-Path $work 'manifest/clips.manifest.json'), '-FfmpegPath', $FfmpegPath, '-EngineDirectory', $engines)
+        Assert-True ($result.exit_code -eq 0) "Fixture engine $name failed: $($result.messages)"
+        $measured[$name] = Invoke-Script 'measure-run.ps1' @('-RunDirectory', $run, '-FfmpegPath', $FfmpegPath)
+        if ($measured[$name].exit_code -eq 0) {
+            $measured[$name].clip = @((Get-Content -LiteralPath (Join-Path $run 'metrics.json') -Raw | ConvertFrom-Json).clips | Where-Object file_name -eq 'shaken-still.mp4')[0]
+        }
+    }
+    Assert-True ($measured.fps60.exit_code -eq 0 -and [Math]::Abs($measured.fps60.clip.reduction - 1) -lt 0.15) "A 60 fps copy did not measure as unchanged: $($measured.fps60.clip.reduction)"
+    Write-Output 'PASS a higher frame rate alone does not count as stabilization'
+    Assert-True ($measured.frozen.exit_code -eq 0 -and $measured.frozen.clip.frozen_output) 'A frozen output was not flagged.'
+    Write-Output 'PASS a frozen output is flagged'
+    Assert-True ($measured.short.exit_code -ne 0 -and $measured.short.messages -match 'frames at 30 fps') 'An output with half the frames was measured.'
+    Write-Output 'PASS an output with missing frames is refused'
+    Remove-Item -LiteralPath $work -Recurse -Force
 } finally {
     $env:KUAIDE_CLIPS_DIR = $prior
 }
+
