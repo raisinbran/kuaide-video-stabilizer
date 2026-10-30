@@ -43,3 +43,14 @@ An engine is `engines/<name>.ps1`. It takes `-InputPath`, `-OutputPath`, `-Setti
 Check: `pwsh -NoProfile -File ./spikes/stabilization-benchmark/test-run-benchmark.ps1 -FfmpegPath <ffmpeg.exe>`.
 
 Measuring crop and leftover shake is WP 1A.2.
+## libvidstab engine and measurement (WP 1A.2)
+
+`engines/libvidstab.ps1` runs FFmpeg's two-pass libvidstab: `vidstabdetect`, then `vidstabtransform` and a libx264 encode, copying audio. Its settings files hold `detect` and `transform` option strings, `preset` and `crf`; option strings that name files or add filters are refused. `settings/libvidstab-auto.json` uses the defaults; `settings/libvidstab-tuned.json` uses stronger detection and about 1 s of smoothing. Both keep black borders (`optzoom=0`) so the crop can be measured.
+
+`measure-run.ps1 -RunDirectory <run> -FfmpegPath <ffmpeg>` writes `metrics.json` into a finished run:
+
+- `shake_px`: libvidstab's frame-to-frame camera motion, minus a 15-frame moving average (intended motion such as a pan), as RMS pixels. Measured on the original and the output.
+- `reduction`: output shake / original shake. 1 is unchanged; lower is steadier.
+- `crop_pct`: the share of the frame outside the area that is picture in every output frame (`cropdetect`). Dark frame edges also count as border, so it is an upper bound.
+
+The shake measure uses libvidstab itself, so it may favor libvidstab over other engines; WP 1A.4 adds frame reviews. Check: `pwsh -NoProfile -File ./spikes/stabilization-benchmark/test-libvidstab.ps1 -FfmpegPath <ffmpeg.exe>`.

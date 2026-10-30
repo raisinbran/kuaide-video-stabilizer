@@ -1,0 +1,9 @@
+{
+  "engine": "libvidstab",
+  "name": "auto",
+  "description": "libvidstab defaults, with black borders kept (optzoom=0) so the needed crop can be measured.",
+  "detect": "shakiness=5:accuracy=15",
+  "transform": "smoothing=10:optzoom=0:crop=black",
+  "preset": "veryfast",
+  "crf": 18
+}

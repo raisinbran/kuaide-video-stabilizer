@@ -1,0 +1,9 @@
+{
+  "engine": "libvidstab",
+  "name": "tuned",
+  "description": "Stronger detection and a longer smoothing window (about 1 s at 30 fps) for handheld walking footage; black borders kept to measure crop.",
+  "detect": "shakiness=8:accuracy=15:stepsize=4",
+  "transform": "smoothing=30:optzoom=0:crop=black:interpol=bicubic",
+  "preset": "veryfast",
+  "crf": 18
+}
