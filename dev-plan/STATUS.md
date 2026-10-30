@@ -1,14 +1,16 @@
 # Status
 
-Last updated: 2026-10-29 15:16 PT by Codex.
+Last updated: 2026-10-29 15:32 PT by Codex.
 
 ## Current position
 
 - Phase 0 (repository setup) is complete. The GitHub repo is renamed to `kuaide-video-stabilizer`. No app code yet.
-- Phase 1 is approved, as recorded on `origin/docs/phase-1-start`. No source implementation has started.
-- The reviewed plans on `feat/wp-1a-stabilization-benchmark` (`e1d7d4d`), `feat/wp-1b-preview-playback` (`f63b6e6`), and `feat/wp-1c-media-capabilities` (`3be84fb`) are absent from this checkout and GitHub. They have not been recovered. Replacement WP 1C-R1 is implemented and independently approved. Its offline checks passed twice. A separate bounded WP 1A manifest plan is being prepared for independent review.
-- Recovery documentation is committed at `9f2c01f` on `docs/phase-1-recovery`. WP 1C-R1 lives on `feat/wp-1c-build-inventory`, based on that commit; its reviewed source, plan and checks are being committed locally. Elevated Git execution resolves metadata write restrictions. No push, PR or merge is authorized.
-- Account allowance was read successfully through `get_usage_limits` on 2026-10-29 at about 15:15 PT: 79% remains in the five-hour window and 69% in the weekly window. These are point-in-time readings; recheck at each stable point. The owner's 5%-or-below stop-and-handover rule applies immediately.
+- Phase 1 is approved. Bounded replacement spikes are implemented; no app UI or core implementation has started.
+- The original plans at `e1d7d4d`, `f63b6e6`, and `3be84fb` remain unavailable. Replacements are explicitly labeled; compare any recovered plans before combining work.
+- Recovery rules and documents: `docs/phase-1-recovery` at `9f2c01f`. WP 1C-R1 collector: `feat/wp-1c-build-inventory` at `dbe42b5`. WP 1A-R1 manifest: `feat/wp-1a-clip-manifest` at `957089c`, with status correction `2daa176`. Both packages passed independent review and their offline suites.
+- Current branch `feat/wp-1c-windows-build` starts from `dbe42b5`. Its reviewed WP 1C-R2 script acquired and checksum-verified one Windows candidate. All six real collector commands passed, and observed build evidence is recorded in `spikes/media-capabilities/evidence/2026-10-29-windows-candidate.md`. The source/test review and factual evidence review both approved it.
+- Elevated Git execution resolves metadata write restrictions. Branches are local only. No push, PR or merge is authorized.
+- Account allowance at about 15:31 PT: 49% remains in the five-hour window and 64% in the weekly window. These are point-in-time readings; recheck at each stable point. Stop and provide a handover at 5% or below in any applicable window.
 
 ## Machines
 
@@ -62,5 +64,8 @@ Last updated: 2026-10-29 15:16 PT by Codex.
 
 ## Verification and next work
 
-- WP 1C-R1: `spikes/media-capabilities/test-build-inventory.ps1` passed all four behavior groups in the actual checkout and in an independent rerun. Tests use trusted child-process fixtures, not FFmpeg. No real binaries, encoders, GPU, macOS, media or license applicability have been validated.
-- Next: independently review and implement the bounded WP 1A manifest replacement; then acquire verified FFmpeg builds under a separate plan and run real build/hardware evidence when prerequisites are available.
+- WP 1C-R1: all four offline behavior groups passed in the checkout and in independent review. The collector subsequently passed all six listing/identity commands against real verified FFmpeg and ffprobe binaries.
+- WP 1A-R1: all three fixture behavior groups passed in the checkout and independently. A scratch mutation adding an absolute source path was rejected. No original clips were accessed. This source is on its separate named branch, not merged here.
+- WP 1C-R2: checksum-rejection check passed independently; actual download, pinned hash/size check and extraction succeeded. Exact binary/license hashes, versions and full reported configuration are recorded in evidence. Required stabilization filters, x264/x265 and NVENC/QSV/AMF encoder names are listed. No encode, filter execution or GPU validation has run yet.
+- Binaries and retained download are ignored under `app/third-party/bin/`; raw path-containing inventory is in system temp. No binaries or raw local report are staged. The extracted GPL v3 license file is observed; full source correspondence and dependency license applicability remain unverified.
+- Next: bounded runtime encoder/filter checks with synthetic inputs, plus source/dependency provenance review. WP 1B preview work, actual footage probing, Windows reference-machine tests and macOS evidence remain open. No Phase 1 engine or preview decision is made.
