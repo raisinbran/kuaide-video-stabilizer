@@ -2,6 +2,8 @@
 target/
 node_modules/
 dist/
+# Tauri regenerates its schemas on every build
+spikes/preview-playback/src-tauri/gen/
 
 # Media and third-party binaries are never committed
 *.mp4
