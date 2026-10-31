@@ -1,8 +1,28 @@
 {
   "schema_version": 1,
-  "created_at_utc": "2026-10-30T02:05:52.3223556+00:00",
+  "created_at_utc": "2026-10-30T04:02:28.5586474+00:00",
   "source": "KUAIDE_CLIPS_DIR; top-level regular files only",
   "files": [
+    {
+      "file_name": "20261019_031753000_iOS.MOV",
+      "size_bytes": 150893711,
+      "sha256": "e76528e8928040afb2402f9ce3b8abd4113460d6a7ee9e5f74dd8f100b45ce90",
+      "media_format": "unknown",
+      "camera": "unknown",
+      "originality": "unknown",
+      "footage_categories": [],
+      "evidence": "Full file bytes hashed; media content and metadata not probed."
+    },
+    {
+      "file_name": "20261030_033123000_iOS.MOV",
+      "size_bytes": 150515221,
+      "sha256": "f91619eb4fe7980dc99ef2854e4f8ceb8250262a3a83823346fac840efa57366",
+      "media_format": "unknown",
+      "camera": "unknown",
+      "originality": "unknown",
+      "footage_categories": [],
+      "evidence": "Full file bytes hashed; media content and metadata not probed."
+    },
     {
       "file_name": "Caltrain - Brisbane to SSF.mp4",
       "size_bytes": 154801136,
