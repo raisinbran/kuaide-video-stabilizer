@@ -1,0 +1,41 @@
+name: Offline checks
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/offline-checks.yml'
+      - 'spikes/**'
+      - 'app/third-party/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  powershell:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: File safety and provenance fixture tests
+        shell: pwsh
+        run: |
+          $tests = @(
+            './spikes/stabilization-benchmark/test-clip-manifest.ps1',
+            './spikes/media-capabilities/test-build-inventory.ps1',
+            './app/third-party/test-windows-ffmpeg.ps1'
+          )
+          foreach ($test in $tests) {
+            & pwsh -NoProfile -NonInteractive -File $test
+            if ($LASTEXITCODE -ne 0) { throw "$test failed (exit $LASTEXITCODE)" }
+          }
+
+  rust:
+    runs-on: windows-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use current stable Rust
+        run: rustup update stable --no-self-update
+      - name: Preview range and server unit tests
+        run: cargo test --manifest-path spikes/preview-playback/src-tauri/Cargo.toml --locked

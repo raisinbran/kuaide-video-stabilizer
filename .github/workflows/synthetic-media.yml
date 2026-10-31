@@ -1,0 +1,40 @@
+name: Synthetic media tests
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/synthetic-media.yml'
+      - 'spikes/stabilization-benchmark/**'
+      - 'spikes/media-capabilities/**'
+      - 'app/third-party/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  synthetic:
+    runs-on: windows-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download and verify the pinned FFmpeg build
+        shell: pwsh
+        run: |
+          $paths = @(& ./app/third-party/get-windows-ffmpeg.ps1 -TimeoutMinutes 10)
+          if ($paths.Count -ne 2) { throw 'Expected FFmpeg and ffprobe paths' }
+          "FFMPEG_PATH=$($paths[0])" >> $env:GITHUB_ENV
+          "FFPROBE_PATH=$($paths[1])" >> $env:GITHUB_ENV
+      - name: Run synthetic benchmark and probe tests
+        shell: pwsh
+        run: |
+          $tests = @(
+            @{ script = './spikes/stabilization-benchmark/test-run-benchmark.ps1'; args = @('-FfmpegPath', $env:FFMPEG_PATH) },
+            @{ script = './spikes/stabilization-benchmark/test-libvidstab.ps1'; args = @('-FfmpegPath', $env:FFMPEG_PATH) },
+            @{ script = './spikes/media-capabilities/test-probe-clips.ps1'; args = @('-FfmpegPath', $env:FFMPEG_PATH, '-FfprobePath', $env:FFPROBE_PATH) }
+          )
+          foreach ($test in $tests) {
+            $testArgs = $test.args
+            & pwsh -NoProfile -NonInteractive -File $test.script @testArgs
+            if ($LASTEXITCODE -ne 0) { throw "$($test.script) failed (exit $LASTEXITCODE)" }
+          }
