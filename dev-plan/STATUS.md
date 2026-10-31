@@ -1,12 +1,12 @@
 # Status
 
-Last updated: 2026-10-30 by Claude Code (WP 1A.2 crop method and concert investigation, after reviewing Codex's correction).
+Last updated: 2026-10-31 by ChatGPT Chat (cloud delegation rules and PR #14-#15 merge record; preliminary, awaiting Claude Code QA).
 
 ## Current position
 
 In plain words: Phase 1 is still gathering evidence. FFmpeg's stabilizer has run on five real clips and computer-made clips, and the preview test app exists. Shake and crop can now both be measured. So far only one clip is truly shaky, so no stabilizer choice can be made yet. Gyroflow and DaVinci Resolve have not run.
 
-- WP 1A.2 work is split for size into `feat/wp-1a-2-libvidstab-engine` (code) and `docs/wp-1a-2-results` (results and notes); `feat/wp-1a-2-libvidstab` at `f6bcd46` holds the full history. Codex's measurement correction passed Claude Code review (all claims reproduced). Added since: geometric crop from a stabilized white mask, and a picture-change cross-check. `test-libvidstab.ps1` passes all 8 groups; reports use `measurement_version=4`; a fresh agent approved it and its findings are fixed. Results and limits: `spikes/stabilization-benchmark/evidence/2026-10-30-crop-and-concert.md`. Pushed with the owner's approval, not merged; Gyroflow not started.
+- WP 1A.2 work is split for size into `feat/wp-1a-2-libvidstab-engine` (code) and `docs/wp-1a-2-results` (results and notes); `feat/wp-1a-2-libvidstab` at `f6bcd46` holds the full history. Codex's measurement correction passed Claude Code review (all claims reproduced). Added since: geometric crop from a stabilized white mask, and a picture-change cross-check. `test-libvidstab.ps1` passes all 8 groups; reports use `measurement_version=4`; a fresh agent approved it and its findings are fixed. Results and limits: `spikes/stabilization-benchmark/evidence/2026-10-30-crop-and-concert.md`. Merged in PRs #14 and #15 on 2026-10-31; Gyroflow not started.
 - Frame inspection shows different renderings and edits in the two Caltrain files; the MP4 includes live-action footage near its end. They are not matched controls for diagnosing frame-rate effects.
 - This session has no laptop shutdown deadline. The owner permits use of the full current five-hour allowance; the weekly deadline remains in force. The owner approved the push and two PRs on 2026-10-30; merging needs separate approval.
 
@@ -65,7 +65,7 @@ In plain words: Phase 1 is still gathering evidence. FFmpeg's stabilizer has run
 
 - Mandatory allowance deadline for all plans and future sessions: by 1% remaining in either limit, the handover is ready and the agent has already stopped at a stable point. Begin wrap-up at 5% or earlier. See AGENTS.md Gate 3. The same rule is saved in local user-wide Codex and Claude Code instruction files on this computer.
 - Long-task permissions (Gate 2): none.
-- One-time owner approval: publish the five completed branches, including the completion status/handover record. All five are now published. No standing permission for further work, PRs or merges is implied.
+- Earlier one-time owner approval to publish five branches is complete. On 2026-10-31, the owner granted ChatGPT Chat standing permission to push `cloud-ok` task branches and open draft PRs (AGENTS.md); every ChatGPT change is preliminary and needs concise Claude Code QA before an owner-approved merge. No standing permission to merge, release or change owner-decided behavior.
 - Installing DaVinci Resolve (free): allowed. The download form asks for personal details, and accepting the license is the owner's call, so the owner fills in that form (about 2 minutes) unless they say otherwise at the time.
 
 ## Open questions for the owner
@@ -95,7 +95,7 @@ In plain words: Phase 1 is still gathering evidence. FFmpeg's stabilizer has run
 - WP 1C-R2: checksum-rejection check passed independently; actual download, pinned hash/size check and extraction succeeded. Exact binary/license hashes, versions and full reported configuration are recorded in evidence. Required stabilization filters, x264/x265 and NVENC/QSV/AMF encoder names are listed.
 - WP 1C-R3: x264, x265 and both libvidstab passes executed successfully on synthetic data. All three outputs passed ffprobe checks; independent review reran the smoke and confirmed an existing-output retry preserves the report. Timings are illustrative, not representative benchmarks. QA-R1 adds a measured shake check: on a synthetic shaken video the leftover motion fell from 20.67 to 1.88 (ratio 0.09, limit 0.25). No GPU encoding, original-media probing or quality scoring on real footage is established.
 - Binaries and retained download are ignored under `app/third-party/bin/`; raw path-containing inventory is in system temp. No binaries or raw local report are staged. The extracted GPL v3 license file is observed; full source correspondence and dependency license applicability remain unverified.
-- Next: fresh review of the crop method, merge WP 1A.2 libvidstab work, then Gyroflow (needs a gyro clip), 1A.3 Resolve and 1B.2. Results: `spikes/stabilization-benchmark/evidence/2026-10-30-crop-and-concert.md`. Owner clips for gyro, running, 4K and other cases are still needed for the engine choice. No Phase 1 engine or preview decision is made.
+- Next: develop Gyroflow adapter with cloud-only synthetic checks where feasible; real gyro tests await a gyro clip. Continue 1A.3 Resolve, 1B.2 playback and Mac tests. Results: `spikes/stabilization-benchmark/evidence/2026-10-30-crop-and-concert.md`. Owner clips for gyro, running, 4K and other cases are still needed for engine choice. No Phase 1 engine or preview decision is made.
 
 ## GitHub connection and publication
 
