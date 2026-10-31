@@ -16,7 +16,7 @@ Phase 1 is done when `dev-plan/decision-record.md` covers every item in the crit
 | 1A.1 Clip manifest and benchmark harness | needs-windows | 1C-A | Done: manifest (1A-R1, #10) and harness with synthetic clips |
 | 1B.1 Tauri preview test app | needs-windows | none | Done on Windows (PR #8, `wp-1b-1-preview-app.md`) |
 | 1C-B Camera-file probing and hardware encoders | needs-windows, needs-mac | 1C-A | Windows part done (`evidence/2026-10-30-clip-probes-and-encoders.md`); NVENC and Mac open |
-| 1A.2 FFmpeg and Gyroflow runs | needs-windows | 1A.1 | Not started |
+| 1A.2 FFmpeg and Gyroflow runs | needs-windows | 1A.1 | In progress on `feat/wp-1a-2-libvidstab`; crop method and Gyroflow remain open |
 | 1B.2 Playback and seek measurements | needs-windows, needs-mac | 1B.1 | Not started |
 | 1C-C Mac FFmpeg build and HDR-to-SDR method | needs-mac | 1C-B | Not started |
 | 1A.3 DaVinci Resolve runs | needs-windows, desktop control | 1A.1 | Not started |
@@ -61,3 +61,4 @@ Write `dev-plan/decision-record.md` with `design-doc`: narrative, alternatives a
 1. `orchestrator-proposed`: the piece names and order follow the original handover `2026-10-29-phase-1-planning.md` (on `docs/phase-1-start`); the content of each piece is rebuilt from the roadmap, draft, critique and design brief, not copied from the lost plans.
 2. The original plan budgets (source lines, excluding lockfiles) were 1A: 464/358/265/492, 1B: 604/646/641, 1C: 487/539/446. Expect similar sizes; split any piece that goes over 700 lines.
 3. Clips available now: `IMG_0225.MOV` and two Caltrain files (see roadmap). The engine choice also needs the owner's extra clips listed in STATUS.md.
+4. `proposed` (2026-10-29 continuation): keep the brightness-based border estimate as a diagnostic only. Report geometric crop as unavailable for transformed outputs until a method handles dark scenery and rotated corners. Verified byte-identical copies have zero added crop. Correct the residual-motion window to 15 frames and version the report so earlier numbers cannot be mistaken for equivalent evidence.
