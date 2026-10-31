@@ -7,9 +7,17 @@
 
 This roadmap splits the build into phases and pull-request-sized work packages (WPs). It names the frontend and backend parts, which WPs can run in parallel with subagents, and where agents must stop. Each WP gets its own implementation plan in `dev-plan/plans/` just before it starts. personal-dev-env's `create-plan` skill writes that plan against the code as it exists then. This roadmap holds no code diffs, because there is no code yet.
 
+## Early cloud-compatible work (owner approved 2026-10-31)
+
+Independent `cloud-ok` tasks can proceed ahead of a phase gate when they need no unfinished test results, unresolved technical choice or local media. Preserve each WP's true code dependencies and the original phase acceptance gates. ChatGPT Chat commits preliminary work on task branches, opens draft PRs and obtains concise Claude Code QA before any owner-approved merge.
+
+Current safe candidates: review existing benchmark and preview code; improve synthetic/offline tests for already merged behavior; add targeted CI for existing tests; assess published FFmpeg licensing/provenance without claiming an unverified build is cleared; and draft evidence-backed sections of the Phase 1 decision record marked pending where necessary. Real engine choice, performance claims, cross-OS validation and architecture-specific Phase 2/3 implementation stay blocked until their inputs exist. For mixed hardware WPs, split independent cloud implementation from physical verification instead of treating the entire WP as blocked or complete.
+
+Keep WPs and review reports small. Run long independent physical tests in parallel with unrelated cloud work when feasible.
+
 ## How to read the labels
 
-- **Where:** `cloud-ok` runs in any session, including a Linux cloud session. `needs-windows` and `needs-mac` need the owner's physical machine. `needs-owner` needs BJC's eyes, footage or a manual app (for example DaVinci Resolve).
+- **Where:** `cloud-ok` runs in any session, including a Linux cloud session. Separable cloud-only portions of mixed WPs may be delegated early under the exception above. `needs-windows` and `needs-mac` require physical verification; `needs-owner` requires BJC's eyes, footage or a manual app (for example DaVinci Resolve).
 - **Est.:** rough agent working time. Any single step that cannot be paused and is expected to take over 1 hour is marked **LONG**. AGENTS.md says the agent must ask before starting it.
 - **Size rule:** a PR changes at most 700 lines (personal-dev-env `roadmap-run`). Generated lockfiles do not count toward this limit, but they are committed and reviewed. A WP that grows past the limit splits into two PRs.
 
@@ -137,13 +145,7 @@ Neither Caltrain file is a camera original. Both were re-compressed, so they tes
 
 ### Phase 4: UI/UX (owner gate before starting)
 
-**UI/UX gate.** Before any Phase 4 work starts, the running agent checks which agent it is. If it is not Claude Code, it must stop and ask the owner how to proceed, offering these options:
-
-1. Prepare handoff documents so Claude Code can run the UI/UX phase. Write them to `dev-plan/handover/ui-ux-handoff.md` using the template in AGENTS.md, plus anything Claude Code needs: the mock adapter, sample data, the design notes below, and the state of every WP.
-2. Continue the UI/UX work with the current agent anyway.
-3. Pause the project here.
-
-If the agent is Claude Code, it confirms the visual direction with the owner (see the first step below) and then proceeds. Claude Code can check the UI visually through the Vite dev server with the mock adapter in its browser pane.
+**UI/UX gate.** Show the owner 2-3 static mockups and obtain a selection before visual implementation. ChatGPT Chat may perform cloud-only UI tasks through the mock adapter after that choice; a capable agent must check the visual result. Real Windows/macOS playback and final acceptance remain hardware-gated. Do not invent device results.
 
 **Visual direction (from the draft):** a compact, panel-based layout inspired by Discord and AutoCAD. The preview sits in the center, the inspector on the side, the timeline at the bottom, and Import and Export are always visible. Light, dark and system themes. No copied branding or assets. First step of Phase 4: show the owner 2-3 static layout mockups and get a pick before building.
 
