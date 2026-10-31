@@ -1,16 +1,20 @@
 # Status
 
-Last updated: 2026-10-30 by Claude Code (WP 1B.1, 1C-B, 1A.1).
+Last updated: 2026-10-30 by Claude Code (WP 1A.2 crop method and concert investigation, after reviewing Codex's correction).
 
 ## Current position
 
-In plain words: Phase 1 has started, but most of it is still ahead. So far the agents have a checked copy of FFmpeg for Windows, a script that lists clip files with their fingerprints, and a short test showing that FFmpeg can encode video and that its stabilizer reduces shake on a computer-made test video. No real footage has been tested, no stabilizer has been compared, and the preview test has not started.
+In plain words: Phase 1 is still gathering evidence. FFmpeg's stabilizer has run on five real clips and computer-made clips, and the preview test app exists. Shake and crop can now both be measured. So far only one clip is truly shaky, so no stabilizer choice can be made yet. Gyroflow and DaVinci Resolve have not run.
+
+- WP 1A.2 work is split for size into `feat/wp-1a-2-libvidstab-engine` (code) and `docs/wp-1a-2-results` (results and notes); `feat/wp-1a-2-libvidstab` at `f6bcd46` holds the full history. Codex's measurement correction passed Claude Code review (all claims reproduced). Added since: geometric crop from a stabilized white mask, and a picture-change cross-check. `test-libvidstab.ps1` passes all 8 groups; reports use `measurement_version=4`; a fresh agent approved it and its findings are fixed. Results and limits: `spikes/stabilization-benchmark/evidence/2026-10-30-crop-and-concert.md`. Pushed with the owner's approval, not merged; Gyroflow not started.
+- Frame inspection shows different renderings and edits in the two Caltrain files; the MP4 includes live-action footage near its end. They are not matched controls for diagnosing frame-rate effects.
+- This session has no laptop shutdown deadline. The owner permits use of the full current five-hour allowance; the weekly deadline remains in force. The owner approved the push and two PRs on 2026-10-30; merging needs separate approval.
 
 | Phase 1 part | Done | Still to do |
 |---|---|---|
-| 1A Stabilization benchmark | A list of the clips with their fingerprints; a harness that runs one stabilizer on every clip safely and records the results; two computer-made test clips (shaken still, hard cut) | Run FFmpeg's stabilizer, Gyroflow and DaVinci Resolve on your clips, score them, and build the side-by-side comparison page |
+| 1A Stabilization benchmark | Five-clip list, safe harness, computer-made test clips, automatic and tuned libvidstab runs, shake, crop and picture-change measures | Add Gyroflow and Resolve, get handheld footage, then score and compare |
 | 1B Preview playback | A small test version of the app window (Tauri) that plays and skips through a 1080p video in two ways (WP 1B.1) | Measure how smoothly it plays and seeks on Windows and Mac, and test the WebGL color shader |
-| 1C Media tools | One exact Windows FFmpeg build, checked; it encodes video and reduces shake on a computer-made video; your three clips read (format, rotation, frame rate, color); Intel Quick Sync encoding works on this laptop | NVIDIA encoding (this FFmpeg needs a newer NVIDIA driver than the laptop has); a Mac FFmpeg build; HDR, varying-frame-rate and gyro clips; choosing how to convert HDR video to normal video; finishing the license check |
+| 1C Media tools | One exact Windows FFmpeg build, checked; it encodes video and reduces shake on a computer-made video; your three clips read (format, rotation, frame rate, color); Intel Quick Sync encoding works on this laptop | NVIDIA encoding (this FFmpeg needs a newer NVIDIA driver than the laptop has); a Mac FFmpeg build; gyro clips; choosing how to convert the available HDR/VFR phone clips to normal video; finishing the license check |
 | Decision record | Nothing | Write `dev-plan/decision-record.md` for your approval |
 
 - Phase 0 (repository setup) is complete. The GitHub repo is renamed to `kuaide-video-stabilizer`. No app code yet.
@@ -23,7 +27,7 @@ In plain words: Phase 1 has started, but most of it is still ahead. So far the a
 - The owner approved publishing the five completed branches. All five were published and their GitHub ref hashes verified against local commits on 2026-10-29. Later PRs and merges each need a new owner approval.
 - QA-R1 (Claude Code check of the Codex handoff), merged as `a324897`: download-script fixes, a measured shake-reduction check, PowerShell 7 installed and on PATH, and this plain-words summary. Rebuilt Phase 1 plans: `dev-plan/plans/phase-1-wp-plans.md`. Plan: `dev-plan/plans/qa-r1-phase-1-handoff-fixes.md`.
 - WP 1B.1 (Tauri preview test app), merged as `f6ced85` (PR #8): plays and seeks a 1080p H.264 file by custom protocol and by a loopback HTTP server on Windows; 8 Rust tests pass; reviewed by a fresh agent. Record: `dev-plan/plans/wp-1b-1-preview-app.md`. Rust 1.99.1 and Node.js 26 LTS are installed on the current laptop.
-- Clip folder support and clip list, merged as `663ae7c` (PR #10). WP 1C-B Windows part, merged as `4e1c609` (PR #11): see `spikes/media-capabilities/evidence/2026-10-30-clip-probes-and-encoders.md`. `IMG_0225.MOV` is H.264 in portrait, not HEVC; no current clip is HDR, variable-rate or has gyro data. NVENC fails with the pinned FFmpeg because it needs NVIDIA driver 610+ (laptop: 581.95); Quick Sync works. WP 1A.1 benchmark harness, merged as `058461b` (PR #12). Each was reviewed by a fresh agent and its findings fixed.
+- Clip folder support and clip list, merged as `663ae7c` (PR #10). WP 1C-B Windows part, merged as `4e1c609` (PR #11): see `spikes/media-capabilities/evidence/2026-10-30-clip-probes-and-encoders.md`. `IMG_0225.MOV` is H.264 in portrait, not HEVC; those first three clips were neither HDR nor variable-rate and had no gyro data; two HDR/VFR iPhone clips were added later. NVENC fails with the pinned FFmpeg because it needs NVIDIA driver 610+ (laptop: 581.95); Quick Sync works. WP 1A.1 benchmark harness, merged as `058461b` (PR #12). Each was reviewed by a fresh agent and its findings fixed.
 - Account allowance: read it fresh at session start and at each stable point. Begin wrap-up at 5% remaining or earlier; the handover must be ready and work already stopped at a stable point before either the five-hour or weekly allowance reaches 1%.
 
 ## Machines
@@ -36,7 +40,7 @@ In plain words: Phase 1 has started, but most of it is still ahead. So far the a
 
 ## Owner tasks
 
-- Add more benchmark clips to the clips folder. Priority order and reasons are in the roadmap ("Benchmark clip coverage"): an original GoPro/DJI/Insta360 clip with gyro data, a recent HDR phone clip, 4K/60 (and 4K/120 if possible), a deliberate pan, a tripod or resting clip, a running clip, low light, and a Sony clip with gyro data. Each 30-60 s. Copy the original camera files: from a GoPro or DJI, copy straight from the SD card. From an iPhone, use a cable (Windows Photos app or the Mac's Image Capture) or the Google Drive app's file upload. Do not send them through messaging apps or Google Photos, which re-compress video and drop gyro data.
+- Two HDR iPhone clips are now available. Add more benchmark clips to the clips folder. Remaining priorities from the roadmap ("Benchmark clip coverage"): an original GoPro/DJI/Insta360 clip with gyro data, 4K/60 (and 4K/120 if possible), a deliberate pan, a tripod or resting clip, a running clip, low light, and a Sony clip with gyro data. Each 30-60 s. Copy the original camera files: from a GoPro or DJI, copy straight from the SD card. From an iPhone, use a cable (Windows Photos app or the Mac's Image Capture) or the Google Drive app's file upload. Do not send them through messaging apps or Google Photos, which re-compress video and drop gyro data.
 
 ## Owner decisions
 
@@ -76,6 +80,8 @@ In plain words: Phase 1 has started, but most of it is still ahead. So far the a
 
 ## Handover log
 
+- `dev-plan/handover/2026-10-29-wp-1a-2-continuation.md` (current continuation; Pacific date, after the earlier handovers dated 2026-10-30).
+
 - `dev-plan/handover/2026-10-29-phase-1-planning.md` (copied from the published coordination branch).
 - `dev-plan/handover/2026-10-29-recovery-and-allowance.md` (current local recovery record).
 - `dev-plan/handover/2026-10-29-phase-1-spikes.md` (Codex continuation instructions and branch map, before QA).
@@ -89,7 +95,7 @@ In plain words: Phase 1 has started, but most of it is still ahead. So far the a
 - WP 1C-R2: checksum-rejection check passed independently; actual download, pinned hash/size check and extraction succeeded. Exact binary/license hashes, versions and full reported configuration are recorded in evidence. Required stabilization filters, x264/x265 and NVENC/QSV/AMF encoder names are listed.
 - WP 1C-R3: x264, x265 and both libvidstab passes executed successfully on synthetic data. All three outputs passed ffprobe checks; independent review reran the smoke and confirmed an existing-output retry preserves the report. Timings are illustrative, not representative benchmarks. QA-R1 adds a measured shake check: on a synthetic shaken video the leftover motion fell from 20.67 to 1.88 (ratio 0.09, limit 0.25). No GPU encoding, original-media probing or quality scoring on real footage is established.
 - Binaries and retained download are ignored under `app/third-party/bin/`; raw path-containing inventory is in system temp. No binaries or raw local report are staged. The extracted GPL v3 license file is observed; full source correspondence and dependency license applicability remain unverified.
-- Next: WP 1A.2 (libvidstab and Gyroflow engines, crop and leftover-shake measurement), then 1A.3 Resolve and 1B.2. Owner clips for HDR, gyro, 4K and other cases are still needed for the engine choice. No Phase 1 engine or preview decision is made.
+- Next: fresh review of the crop method, merge WP 1A.2 libvidstab work, then Gyroflow (needs a gyro clip), 1A.3 Resolve and 1B.2. Results: `spikes/stabilization-benchmark/evidence/2026-10-30-crop-and-concert.md`. Owner clips for gyro, running, 4K and other cases are still needed for the engine choice. No Phase 1 engine or preview decision is made.
 
 ## GitHub connection and publication
 
