@@ -1,0 +1,40 @@
+#requires -Version 7.0
+# Two-pass libvidstab through FFmpeg: vidstabdetect writes the camera motion,
+# vidstabtransform smooths it and moves each frame. Options come from the
+# settings file: `detect` and `transform` are filter option strings, `crf` and
+# `preset` set the libx264 encode. The first audio track is kept as AAC.
+param(
+    [Parameter(Mandatory)][string]$InputPath,
+    [Parameter(Mandatory)][string]$OutputPath,
+    [Parameter(Mandatory)][string]$SettingsPath,
+    [Parameter(Mandatory)][string]$WorkDirectory,
+    [Parameter(Mandatory)][string]$FfmpegPath
+)
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+$settings = Get-Content -LiteralPath $SettingsPath -Raw | ConvertFrom-Json
+Set-Location -LiteralPath $WorkDirectory
+
+# Option strings may only set options: no file names, paths or extra filters.
+foreach ($value in @($settings.detect, $settings.transform)) {
+    if ($value -match "result|input|[\\/\[\];,']") { throw "Unsafe filter options: $value" }
+}
+# The border mask only shows borders when they stay black and nothing zooms them away.
+if ($settings.transform -notmatch '(^|:)crop=black(:|$)' -or $settings.transform -notmatch '(^|:)optzoom=0(:|$)') {
+    throw "Crop can only be measured with crop=black and optzoom=0: $($settings.transform)"
+}
+
+& $FfmpegPath -hide_banner -nostdin -n -i $InputPath -vf "vidstabdetect=$($settings.detect):result=motion.trf" -f null -
+if ($LASTEXITCODE -ne 0) { throw "vidstabdetect failed ($LASTEXITCODE)" }
+& $FfmpegPath -hide_banner -nostdin -n -i $InputPath -map 0:v:0 -map '0:a:0?' `
+    -vf "vidstabtransform=input=motion.trf:$($settings.transform),format=yuv420p" `
+    -c:v libx264 -preset $settings.preset -crf $settings.crf -c:a aac -b:a 192k -movflags +faststart $OutputPath
+if ($LASTEXITCODE -ne 0) { throw "vidstabtransform failed ($LASTEXITCODE)" }
+
+# Same motion on an all-white copy of the clip: whatever is not white is border.
+# lagfun keeps each pixel's brightest value, so after negate the last frame holds
+# every pixel that was border in any frame (see get-valid-crop.ps1).
+& $FfmpegPath -hide_banner -nostdin -n -i $InputPath -an `
+    -vf "format=yuv420p,drawbox=x=0:y=0:w=iw:h=ih:color=white:t=fill,vidstabtransform=input=motion.trf:$($settings.transform),format=gray,scale=320:-2:flags=area,negate,lagfun=decay=1" `
+    -c:v pgm -f image2 -update 1 border-union.pgm
+if ($LASTEXITCODE -ne 0) { throw "Border mask failed ($LASTEXITCODE)" }
