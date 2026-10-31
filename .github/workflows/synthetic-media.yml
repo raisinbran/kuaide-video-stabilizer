@@ -34,6 +34,7 @@ jobs:
             @{ script = './spikes/media-capabilities/test-probe-clips.ps1'; args = @('-FfmpegPath', $env:FFMPEG_PATH, '-FfprobePath', $env:FFPROBE_PATH) }
           )
           foreach ($test in $tests) {
-            & pwsh -NoProfile -NonInteractive -File $test.script @($test.args)
+            $testArgs = $test.args
+            & pwsh -NoProfile -NonInteractive -File $test.script @testArgs
             if ($LASTEXITCODE -ne 0) { throw "$($test.script) failed (exit $LASTEXITCODE)" }
           }
